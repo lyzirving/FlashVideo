@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">FlashVideo</string>
+
+    <string name="tip_go_music">start music activity</string>
+    <string name="tip_init">init</string>
+    <string name="tip_play">play</string>
+    <string name="tip_pause">pause</string>
+    <string name="tip_stop">stop</string>
+
+    <string name="tip_success">success</string>
+    <string name="tip_fail">fail</string>
+</resources>
