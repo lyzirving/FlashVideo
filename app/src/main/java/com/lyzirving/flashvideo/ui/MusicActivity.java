@@ -50,6 +50,22 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 }
                 break;
             }
+            case R.id.btn_pause: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: pause, video obj is null");
+                } else {
+                    mFlashVideo.pause();
+                }
+                break;
+            }
+            case R.id.btn_stop: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: stop, video obj is null");
+                } else {
+                    mFlashVideo.stop();
+                }
+                break;
+            }
             default: {
                 break;
             }

@@ -25,6 +25,8 @@ public:
     void enqueueAudio(AudioData* data);
     void release();
     void setPlayState();
+    void setPauseState();
+    void setStopState();
 private:
 };
 

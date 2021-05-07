@@ -30,11 +30,21 @@ static void nPlay(JNIEnv *env, jclass clazz, jlong pointer) {
     p_player->handlePlay();
 }
 
+static void nPause(JNIEnv *env, jclass clazz, jlong pointer) {
+    auto* p_player = reinterpret_cast<NativeVideoPlayer *>(pointer);
+    p_player->handlePause();
+}
+
+static void nStop(JNIEnv *env, jclass clazz, jlong pointer) {
+    auto* p_player = reinterpret_cast<NativeVideoPlayer *>(pointer);
+    p_player->handleStop();
+}
+
 static JNINativeMethod jniMethods[] = {
         {
-            "nativeCreate",
-            "()J",
-            (void *) nCreate
+                "nativeCreate",
+                "()J",
+                (void *) nCreate
         },
         {
                 "nativeSetPath",
@@ -42,15 +52,25 @@ static JNINativeMethod jniMethods[] = {
                 (void *) nSetPath
         },
         {
-            "nativeInit",
-            "(J)Z",
+                "nativeInit",
+                "(J)Z",
                 (void *) nInit
         },
         {
-            "nativePlay",
-            "(J)V",
+                "nativePlay",
+                "(J)V",
                 (void *) nPlay
-            },
+        },
+        {
+                "nativePause",
+                "(J)V",
+                (void *) nPause
+        },
+        {
+                "nativeStop",
+                "(J)V",
+                (void *) nStop
+        },
 };
 
 void audioBufQueueCallback(SLAndroidSimpleBufferQueueItf buf_queue_itf, void *args) {
@@ -61,6 +81,7 @@ void audioBufQueueCallback(SLAndroidSimpleBufferQueueItf buf_queue_itf, void *ar
 void *audioLooper(void *args) {
     auto* p_player = static_cast<NativeVideoPlayer *>(args);
     p_player->dealAudioLoop();
+    return nullptr;
 }
 
 void NativeVideoPlayer::dealAudioLoop() {
@@ -95,8 +116,17 @@ void NativeVideoPlayer::dealAudioLoop() {
                 pthread_mutex_unlock(&audio_packet_mutex_lock);
                 break;
             }
-            case MSG_PAUSE:
-            case MSG_STOP:
+            case MSG_PAUSE: {
+                LogUtil::logD(TAG, {"dealAudioLoop: handle msg pause"});
+                p_audio->setPauseState();
+                break;
+            }
+            case MSG_STOP: {
+                LogUtil::logD(TAG, {"dealAudioLoop: handle msg stop"});
+                p_audio_msg_queue->pop();
+                p_audio->setStopState();
+                goto quit;
+            }
             case MSG_SEEK: {
                 break;
             }
@@ -111,6 +141,11 @@ void NativeVideoPlayer::dealAudioLoop() {
     LogUtil::logD(TAG, {"dealAudioLoop: quit"});
     pthread_mutex_unlock(&audio_evt_mutex_lock);
     p_audio->release();
+    Msg msg_stop{.what = MSG_STOP};
+    pthread_mutex_lock(&main_evt_mutex_lock);
+    p_msg_queue->push(msg_stop);
+    pthread_cond_signal(&main_evt_cond_lock);
+    pthread_mutex_unlock(&main_evt_mutex_lock);
 }
 
 void NativeVideoPlayer::dealAudioBufferQueueCallback() {
@@ -123,6 +158,7 @@ void NativeVideoPlayer::dealAudioBufferQueueCallback() {
         AudioData* audio_data = p_audio->decodePacket(&audio_packet);
         if (audio_data->buf_size > 0) {
             main_clock += audio_data->buf_size / ((double)(p_audio->p_audio_decoder->out_sample_rate * 2 * 2));
+            LogUtil::logD(TAG, {"audio buf queue: time is ", std::to_string(main_clock)});
             p_audio->enqueueAudio(audio_data);
         }
         av_packet_unref(&audio_packet);
@@ -158,8 +194,18 @@ void NativeVideoPlayer::dealMainEvtLoop() {
                 dealPacketCollector();
                 break;
             }
+            case MSG_PAUSE: {
+                LogUtil::logD(TAG, {"dealMainEvtLoop: handle msg pause"});
+                break;
+            }
+            case MSG_STOP: {
+                LogUtil::logD(TAG, {"dealMainEvtLoop: handle msg stop"});
+                p_msg_queue->pop();
+                goto quit;
+            }
             case MSG_QUIT: {
                 LogUtil::logD(TAG, {"dealMainEvtLoop: handle msg quit"});
+                p_msg_queue->pop();
                 goto quit;
             }
             default: {
@@ -231,6 +277,39 @@ void NativeVideoPlayer::handlePlay() {
         pthread_mutex_unlock(&audio_evt_mutex_lock);
     } else {
         LogUtil::logD(TAG, {"handlePlay: invalid state ", (const char *) media_state});
+    }
+}
+
+void NativeVideoPlayer::handlePause() {
+    if (media_state == STATE_PAUSE) {
+        LogUtil::logD(TAG, {"handlePause: already in pause state"});
+    }else if (media_state == STATE_PLAY) {
+        media_state = STATE_PAUSE;
+        Msg msg{.what = MSG_PAUSE};
+        pthread_mutex_lock(&main_evt_mutex_lock);
+        p_msg_queue->push(msg);
+        pthread_cond_signal(&main_evt_cond_lock);
+        pthread_mutex_unlock(&main_evt_mutex_lock);
+
+        pthread_mutex_lock(&audio_evt_mutex_lock);
+        p_audio_msg_queue->push(msg);
+        pthread_cond_signal(&audio_evt_cond_lock);
+        pthread_mutex_unlock(&audio_evt_mutex_lock);
+    } else {
+        LogUtil::logD(TAG, {"handlePause: invalid state ", (const char *) media_state});
+    }
+}
+
+void NativeVideoPlayer::handleStop() {
+    if (media_state >= STATE_INITIALIZED && media_state < STATE_STOP) {
+        media_state = STATE_STOP;
+        Msg msg{.what = MSG_STOP};
+        pthread_mutex_lock(&audio_evt_mutex_lock);
+        p_audio_msg_queue->push(msg);
+        pthread_cond_signal(&audio_evt_cond_lock);
+        pthread_mutex_unlock(&audio_evt_mutex_lock);
+    } else {
+        LogUtil::logD(TAG, {"handleStop: invalid state ", (const char *) media_state});
     }
 }
 

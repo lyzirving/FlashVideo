@@ -73,6 +73,8 @@ public:
     void dealPacketCollector();
     bool init();
     void handlePlay();
+    void handlePause();
+    void handleStop();
     void setPath(char* path);
 private:
     double main_clock;

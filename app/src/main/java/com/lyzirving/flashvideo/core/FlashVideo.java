@@ -36,6 +36,22 @@ public class FlashVideo {
         }
     }
 
+    public void pause() {
+        if (mNativePtr == INVALID_POINTER) {
+            LogUtil.e(TAG, "pause: pointer is invalid");
+        } else {
+            nativePause(mNativePtr);
+        }
+    }
+
+    public void stop() {
+        if (mNativePtr == INVALID_POINTER) {
+            LogUtil.e(TAG, "stop: pointer is invalid");
+        } else {
+            nativeStop(mNativePtr);
+        }
+    }
+
     public void setSourcePath(String path) {
         if (TextUtils.isEmpty(path)) {
             return;
@@ -50,4 +66,6 @@ public class FlashVideo {
     private native static boolean nativeInit(long ptr);
     private native static void nativeSetPath(long ptr, String path);
     private native static void nativePlay(long ptr);
+    private native static void nativePause(long ptr);
+    private native static void nativeStop(long ptr);
 }

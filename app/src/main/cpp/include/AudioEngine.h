@@ -42,6 +42,8 @@ public:
     void enqueueAudio(int length, unsigned char* data);
     void setBufferQueueCallback(slAndroidSimpleBufferQueueCallback ref, void* in_call_obj);
     void setPlayState();
+    void setPauseState();
+    void setStopState();
     void release();
 private:
     static SLuint32 getBitsPerSample(SLuint32 in_sample_fmt);

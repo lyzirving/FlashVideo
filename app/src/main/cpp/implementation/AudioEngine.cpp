@@ -145,6 +145,18 @@ void AudioEngine::setPlayState() {
     }
 }
 
+void AudioEngine::setPauseState() {
+    if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_PAUSED) != SL_RESULT_SUCCESS) {
+        LogUtil::logE(TAG, {"setPauseState: failed"});
+    }
+}
+
+void AudioEngine::setStopState() {
+    if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_STOPPED) != SL_RESULT_SUCCESS) {
+        LogUtil::logE(TAG, {"setStopState: failed"});
+    }
+}
+
 void AudioEngine::release() {
     if (p_audio_player_obj != nullptr) {
         (*p_audio_player_obj)->Destroy(p_audio_player_obj);

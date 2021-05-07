@@ -48,3 +48,11 @@ void AudioPlayer::setPlayState() {
     p_audio_engine->setPlayState();
 }
 
+void AudioPlayer::setPauseState() {
+    p_audio_engine->setPauseState();
+}
+
+void AudioPlayer::setStopState(){
+    p_audio_engine->setStopState();
+}
+
