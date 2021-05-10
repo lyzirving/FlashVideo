@@ -1,6 +1,6 @@
 #include <jni.h>
 
-#include "NativeVideoPlayer.h"
+#include "AudioController.h"
 #include "LogUtil.h"
 
 #define TAG "native-lib"
@@ -11,7 +11,7 @@ JNIEXPORT int JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
         LogUtil::logD(TAG, {"JNI_OnLoad: failed to get env"});
         return JNI_ERR;
     }
-    if (!NativeVideoPlayer::registerSelf(env)) {
+    if (!AudioController::registerSelf(env)) {
         return JNI_ERR;
     }
 

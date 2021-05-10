@@ -15,9 +15,14 @@ public class FlashVideo {
     private static final int INVALID_POINTER = -1;
 
     private long mNativePtr = INVALID_POINTER;
+    private double mTotalTime;
 
     public FlashVideo() {
         mNativePtr = nativeCreate();
+    }
+
+    public double getTotalTime() {
+        return mTotalTime;
     }
 
     public boolean init() {
@@ -44,6 +49,14 @@ public class FlashVideo {
         }
     }
 
+    public void seek(float ratio) {
+        if (mNativePtr == INVALID_POINTER) {
+            LogUtil.e(TAG, "seek: pointer is invalid");
+        } else {
+            nativeSeek(mNativePtr, ratio);
+        }
+    }
+
     public void stop() {
         if (mNativePtr == INVALID_POINTER) {
             LogUtil.e(TAG, "stop: pointer is invalid");
@@ -54,12 +67,26 @@ public class FlashVideo {
 
     public void setSourcePath(String path) {
         if (TextUtils.isEmpty(path)) {
-            return;
+            LogUtil.e(TAG, "setSourcePath: path is empty");
+        } else if (mNativePtr == INVALID_POINTER) {
+            LogUtil.e(TAG, "setSourcePath: pointer is invalid");
+        } else {
+            nativeSetPath(mNativePtr, path);
         }
+    }
+
+    public void setVideoListener(VideoListenerAdapter listener) {
         if (mNativePtr == INVALID_POINTER) {
-            return;
+            LogUtil.e(TAG, "setVideoListener: pointer is invalid");
+        } else if (listener == null) {
+            LogUtil.e(TAG, "setVideoListener: listener is null");
+        } else {
+            nativeSetListener(mNativePtr, listener);
         }
-        nativeSetPath(mNativePtr, path);
+    }
+
+    public void setTotalTime(double time) {
+        mTotalTime = time;
     }
 
     private native static long nativeCreate();
@@ -67,5 +94,7 @@ public class FlashVideo {
     private native static void nativeSetPath(long ptr, String path);
     private native static void nativePlay(long ptr);
     private native static void nativePause(long ptr);
+    private native static void nativeSeek(long ptr, float seekDst);
     private native static void nativeStop(long ptr);
+    private native static void nativeSetListener(long ptr, VideoListenerAdapter listener);
 }

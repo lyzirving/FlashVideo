@@ -37,6 +37,7 @@ bool AudioDecoder::init(AVFormatContext *in_ptr_fmt_ctx, int in_audio_index) {
                        in_channel_layout, in_sample_fmt, in_sample_rate, 0, nullptr);
     swr_init(p_swr_ctx);
     p_audio_buffer = (unsigned char*) av_malloc(out_channel_count * out_sample_rate);
+    media_time = p_fmt_ctx->duration * av_q2d(AV_TIME_BASE_Q);
     return true;
     fail:
     release();

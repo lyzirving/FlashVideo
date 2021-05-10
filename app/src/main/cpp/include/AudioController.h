@@ -1,35 +1,17 @@
-#ifndef FLASHVIDEO_NATIVEVIDEOPLAYER_H
-#define FLASHVIDEO_NATIVEVIDEOPLAYER_H
+#ifndef FLASHVIDEO_AUDIOCONTROLLER_H
+#define FLASHVIDEO_AUDIOCONTROLLER_H
 
-#include <jni.h>
 #include <pthread.h>
 #include <queue>
 
+#include "Common.h"
+#include "JavaCallbackUtil.h"
 #include "FFMpegCore.h"
 #include "AudioPlayer.h"
 
-class NativeVideoPlayer {
+class AudioController {
 public:
-    enum MediaMsg{
-        MSG_PLAY = 1,
-        MSG_PAUSE = 2,
-        MSG_STOP = 3,
-        MSG_SEEK = 4,
-        MSG_QUIT = 5,
-    };
-    struct Msg {
-        MediaMsg what;
-    };
-    enum MediaState{
-        STATE_IDLE = 1,
-        STATE_INITIALIZED = 2,
-        STATE_PLAY = 3,
-        STATE_PAUSE = 4,
-        STATE_STOP = 5,
-        STATE_ERROR = 6,
-    };
-
-    NativeVideoPlayer() {
+    AudioController() {
         p_ffmpeg_core = nullptr;
         p_audio = nullptr;
         p_audio_packet_queue = new std::queue<AVPacket>();
@@ -37,6 +19,7 @@ public:
         p_audio_msg_queue = new std::queue<Msg>();
         media_state = STATE_IDLE;
         main_clock = 0;
+        last_main_clock = 0;
 
         pthread_mutex_init(&main_evt_mutex_lock, nullptr);
         pthread_cond_init(&main_evt_cond_lock, nullptr);
@@ -45,7 +28,7 @@ public:
         pthread_mutex_init(&audio_packet_mutex_lock, nullptr);
         pthread_cond_init(&audio_packet_cond_lock, nullptr);
     }
-    ~NativeVideoPlayer() {
+    ~AudioController() {
         if (p_ffmpeg_core != nullptr) {
             delete p_ffmpeg_core;
             p_ffmpeg_core = nullptr;
@@ -65,19 +48,23 @@ public:
         pthread_mutex_destroy(&audio_packet_mutex_lock);
         pthread_cond_destroy(&audio_packet_cond_lock);
     }
+    static jobject findListener(jlong pointer);
+    static jobject removeListener(jlong pointer);
     static bool registerSelf(JNIEnv *env);
     static bool threadAttachJvm(JavaVM* ptrJavaVm,JNIEnv** ppEnv);
-    void dealAudioLoop();
+    void dealAudioLoop(JNIEnv* env);
     void dealAudioBufferQueueCallback();
-    void dealMainEvtLoop();
+    void dealMainEvtLoop(JNIEnv* env);
     void dealPacketCollector();
     bool init();
     void handlePlay();
     void handlePause();
+    void handleSeek(float seek_dst);
     void handleStop();
     void setPath(char* path);
+    void seekToDst(float dst_ratio);
 private:
-    double main_clock;
+    double main_clock, last_main_clock;
     FFMpegCore* p_ffmpeg_core;
     AudioPlayer* p_audio;
     MediaState media_state;

@@ -1,43 +1,60 @@
-#include "NativeVideoPlayer.h"
+#include "AudioController.h"
 #include "LogUtil.h"
 
-#define TAG "NativeVideoPlayer"
+#include <map>
+
+#define TAG "AudioController"
 #define CLASS "com/lyzirving/flashvideo/core/FlashVideo"
 
 static JavaVM* p_global_jvm = nullptr;
+static std::map<jlong, jobject> global_listeners;
+static JNIEnv* audio_thread_env = nullptr;
 
 static jlong nCreate(JNIEnv *env, jclass clazz) {
     if (p_global_jvm == nullptr) {
         env->GetJavaVM(&p_global_jvm);
     }
-    return reinterpret_cast<jlong>(new NativeVideoPlayer);
+    return reinterpret_cast<jlong>(new AudioController);
 }
 
 static jboolean nInit(JNIEnv *env, jclass clazz, jlong pointer) {
-    auto* p_player = reinterpret_cast<NativeVideoPlayer *>(pointer);
-    return p_player->init();
+    auto* p_control = reinterpret_cast<AudioController *>(pointer);
+    return p_control->init();
 }
 
 static void nSetPath(JNIEnv *env, jclass clazz, jlong pointer, jstring path) {
-    auto* p_player = reinterpret_cast<NativeVideoPlayer *>(pointer);
+    auto* p_control = reinterpret_cast<AudioController *>(pointer);
     char* tmp = const_cast<char *>(env->GetStringUTFChars(path, nullptr));
-    p_player->setPath(tmp);
+    p_control->setPath(tmp);
     env->ReleaseStringUTFChars(path, tmp);
 }
 
 static void nPlay(JNIEnv *env, jclass clazz, jlong pointer) {
-    auto* p_player = reinterpret_cast<NativeVideoPlayer *>(pointer);
-    p_player->handlePlay();
+    auto* p_control = reinterpret_cast<AudioController *>(pointer);
+    p_control->handlePlay();
 }
 
 static void nPause(JNIEnv *env, jclass clazz, jlong pointer) {
-    auto* p_player = reinterpret_cast<NativeVideoPlayer *>(pointer);
-    p_player->handlePause();
+    auto* p_control = reinterpret_cast<AudioController *>(pointer);
+    p_control->handlePause();
 }
 
 static void nStop(JNIEnv *env, jclass clazz, jlong pointer) {
-    auto* p_player = reinterpret_cast<NativeVideoPlayer *>(pointer);
-    p_player->handleStop();
+    auto* p_control = reinterpret_cast<AudioController *>(pointer);
+    p_control->handleStop();
+}
+
+static void nSetListener(JNIEnv *env, jclass clazz, jlong pointer, jobject listener) {
+    if (listener == nullptr) {
+        LogUtil::logE(TAG, {"nSetListener: listener is null"});
+    } else {
+        global_listeners.insert(std::pair<jlong, jobject >(pointer, env->NewGlobalRef(listener)));
+    }
+}
+
+static void nSeek(JNIEnv *env, jclass clazz, jlong pointer, jfloat seekDst) {
+    auto* p_control = reinterpret_cast<AudioController *>(pointer);
+    p_control->handleSeek(seekDst);
 }
 
 static JNINativeMethod jniMethods[] = {
@@ -71,20 +88,45 @@ static JNINativeMethod jniMethods[] = {
                 "(J)V",
                 (void *) nStop
         },
+        {
+                "nativeSetListener",
+                "(JLcom/lyzirving/flashvideo/core/VideoListenerAdapter;)V",
+                (void *) nSetListener
+        },
+        {
+                "nativeSeek",
+                "(JF)V",
+                (void *) nSeek
+        },
 };
 
 void audioBufQueueCallback(SLAndroidSimpleBufferQueueItf buf_queue_itf, void *args) {
-    auto* p_video_player = (NativeVideoPlayer*)args;
-    p_video_player->dealAudioBufferQueueCallback();
+    if (audio_thread_env == nullptr && !AudioController::threadAttachJvm(p_global_jvm, &audio_thread_env)) {
+        LogUtil::logE(TAG, {"audioBufQueueCallback: env attach audio callback thread failed"});
+        audio_thread_env = nullptr;
+    }
+    auto* p_control = (AudioController*)args;
+    p_control->dealAudioBufferQueueCallback();
+    if (audio_thread_env != nullptr) {
+        p_global_jvm->DetachCurrentThread();
+        audio_thread_env = nullptr;
+    }
+
 }
 
 void *audioLooper(void *args) {
-    auto* p_player = static_cast<NativeVideoPlayer *>(args);
-    p_player->dealAudioLoop();
+    auto* p_control = static_cast<AudioController *>(args);
+    JNIEnv *env = nullptr;
+    if (!AudioController::threadAttachJvm(p_global_jvm, &env)) {
+        LogUtil::logE(TAG, {"audioLooper: failed to attach thread to jvm"});
+        return nullptr;
+    }
+    p_control->dealAudioLoop(env);
+    p_global_jvm->DetachCurrentThread();
     return nullptr;
 }
 
-void NativeVideoPlayer::dealAudioLoop() {
+void AudioController::dealAudioLoop(JNIEnv* env) {
     AVPacket audio_packet;
     AudioData* tmp_audio_data;
     pthread_mutex_lock(&audio_evt_mutex_lock);
@@ -108,6 +150,7 @@ void NativeVideoPlayer::dealAudioLoop() {
                     if (tmp_audio_data->buf_size > 0) {
                         if(tmp_audio_data->now_time < main_clock) tmp_audio_data->now_time = main_clock;
                         main_clock = tmp_audio_data->now_time;
+                        last_main_clock = main_clock;
                         p_audio->enqueueAudio(tmp_audio_data);
                     }
                     av_packet_unref(&audio_packet);
@@ -116,15 +159,15 @@ void NativeVideoPlayer::dealAudioLoop() {
                 pthread_mutex_unlock(&audio_packet_mutex_lock);
                 break;
             }
-            case MSG_PAUSE: {
-                LogUtil::logD(TAG, {"dealAudioLoop: handle msg pause"});
-                p_audio->setPauseState();
-                break;
-            }
             case MSG_STOP: {
                 LogUtil::logD(TAG, {"dealAudioLoop: handle msg stop"});
                 p_audio_msg_queue->pop();
                 p_audio->setStopState();
+                Msg msg_stop{.what = MSG_STOP};
+                pthread_mutex_lock(&main_evt_mutex_lock);
+                p_msg_queue->push(msg_stop);
+                pthread_cond_signal(&main_evt_cond_lock);
+                pthread_mutex_unlock(&main_evt_mutex_lock);
                 goto quit;
             }
             case MSG_SEEK: {
@@ -141,15 +184,10 @@ void NativeVideoPlayer::dealAudioLoop() {
     LogUtil::logD(TAG, {"dealAudioLoop: quit"});
     pthread_mutex_unlock(&audio_evt_mutex_lock);
     p_audio->release();
-    Msg msg_stop{.what = MSG_STOP};
-    pthread_mutex_lock(&main_evt_mutex_lock);
-    p_msg_queue->push(msg_stop);
-    pthread_cond_signal(&main_evt_cond_lock);
-    pthread_mutex_unlock(&main_evt_mutex_lock);
 }
 
-void NativeVideoPlayer::dealAudioBufferQueueCallback() {
-    if(media_state == STATE_PLAY) {
+void AudioController::dealAudioBufferQueueCallback() {
+    if (media_state == STATE_PLAY) {
         pthread_mutex_lock(&audio_packet_mutex_lock);
         if (p_audio_packet_queue->empty()) {
             pthread_cond_wait(&audio_packet_cond_lock, &audio_packet_mutex_lock);
@@ -158,7 +196,14 @@ void NativeVideoPlayer::dealAudioBufferQueueCallback() {
         AudioData* audio_data = p_audio->decodePacket(&audio_packet);
         if (audio_data->buf_size > 0) {
             main_clock += audio_data->buf_size / ((double)(p_audio->p_audio_decoder->out_sample_rate * 2 * 2));
-            LogUtil::logD(TAG, {"audio buf queue: time is ", std::to_string(main_clock)});
+            //invoke the callback every second
+            if (main_clock - last_main_clock > 1) {
+                last_main_clock = main_clock;
+                jobject listener;
+                if ((listener = findListener(reinterpret_cast<jlong>(this))) != nullptr
+                    && audio_thread_env != nullptr)
+                    JavaCallbackUtil::callMediaTickTime(audio_thread_env, listener, main_clock);
+            }
             p_audio->enqueueAudio(audio_data);
         }
         av_packet_unref(&audio_packet);
@@ -167,8 +212,9 @@ void NativeVideoPlayer::dealAudioBufferQueueCallback() {
     }
 }
 
-void NativeVideoPlayer::dealMainEvtLoop() {
+void AudioController::dealMainEvtLoop(JNIEnv* env) {
     pthread_t audio_thread;
+    jobject listener = nullptr;
     if (!p_ffmpeg_core->createEnv()) {
         goto quit;
     }
@@ -180,6 +226,8 @@ void NativeVideoPlayer::dealMainEvtLoop() {
         goto quit;
     }
     media_state = STATE_INITIALIZED;
+    listener = findListener(reinterpret_cast<jlong>(this));
+    if (listener != nullptr) JavaCallbackUtil::callMediaPrepare(env, listener, p_audio->p_audio_decoder->media_time);
     pthread_create(&audio_thread, nullptr, audioLooper, this);
     pthread_mutex_lock(&main_evt_mutex_lock);
     while(true) {
@@ -194,18 +242,24 @@ void NativeVideoPlayer::dealMainEvtLoop() {
                 dealPacketCollector();
                 break;
             }
-            case MSG_PAUSE: {
-                LogUtil::logD(TAG, {"dealMainEvtLoop: handle msg pause"});
-                break;
-            }
             case MSG_STOP: {
                 LogUtil::logD(TAG, {"dealMainEvtLoop: handle msg stop"});
-                p_msg_queue->pop();
                 goto quit;
+            }
+            case MSG_SEEK: {
+                LogUtil::logD(TAG, {"dealMainEvtLoop: handle msg seek"});
+                seekToDst(p_ffmpeg_core->seek_dst);
+                media_state = STATE_PLAY;
+                Msg msg_play{.what = MSG_PLAY};
+                p_msg_queue->push(msg_play);
+                pthread_mutex_lock(&audio_evt_mutex_lock);
+                p_audio_msg_queue->push(msg_play);
+                pthread_cond_signal(&audio_evt_cond_lock);
+                pthread_mutex_unlock(&audio_evt_mutex_lock);
+                break;
             }
             case MSG_QUIT: {
                 LogUtil::logD(TAG, {"dealMainEvtLoop: handle msg quit"});
-                p_msg_queue->pop();
                 goto quit;
             }
             default: {
@@ -216,8 +270,13 @@ void NativeVideoPlayer::dealMainEvtLoop() {
         p_msg_queue->pop();
     }
     quit:
+    p_msg_queue->pop();
     pthread_mutex_unlock(&main_evt_mutex_lock);
     LogUtil::logD(TAG, {"dealMainEvtLoop: quit"});
+    if (listener != nullptr) JavaCallbackUtil::callMediaStop(env, listener);
+    if ((listener = removeListener(reinterpret_cast<jlong>(this))) != nullptr) {
+        env->DeleteGlobalRef(listener);
+    }
     if (p_ffmpeg_core != nullptr) {
         delete p_ffmpeg_core;
         p_ffmpeg_core = nullptr;
@@ -228,7 +287,7 @@ void NativeVideoPlayer::dealMainEvtLoop() {
     }
 }
 
-void NativeVideoPlayer::dealPacketCollector() {
+void AudioController::dealPacketCollector() {
     AVPacket* p_packet = nullptr;
     int res;
     while (media_state == STATE_PLAY) {
@@ -249,18 +308,37 @@ void NativeVideoPlayer::dealPacketCollector() {
 }
 
 void *eventLooper(void *args) {
-    auto* p_player = static_cast<NativeVideoPlayer *>(args);
-    /*JNIEnv *env = nullptr;
-    if (!NativeVideoPlayer::threadAttachJvm(p_global_jvm, &env)) {
+    auto* p_control = static_cast<AudioController *>(args);
+    JNIEnv *env = nullptr;
+    if (!AudioController::threadAttachJvm(p_global_jvm, &env)) {
         LogUtil::logE(TAG, {"eventLooper: failed to attach thread to jvm"});
         return nullptr;
-    }*/
-    p_player->dealMainEvtLoop();
-    //p_global_jvm->DetachCurrentThread();
+    }
+    p_control->dealMainEvtLoop(env);
+    p_global_jvm->DetachCurrentThread();
     return nullptr;
 }
 
-void NativeVideoPlayer::handlePlay() {
+jobject AudioController::findListener(jlong pointer) {
+    auto iterator = global_listeners.find(pointer);
+    if (iterator == global_listeners.end()) {
+        LogUtil::logE(TAG, {"findListener: failed to find listener"});
+        return nullptr;
+    }
+    return iterator->second;
+}
+
+jobject AudioController::removeListener(jlong pointer) {
+    jobject listener = findListener(pointer);
+    if (listener != nullptr) {
+        global_listeners.erase(pointer);
+    }
+    return listener;
+}
+
+
+
+void AudioController::handlePlay() {
     if (media_state == STATE_PLAY) {
         LogUtil::logD(TAG, {"handlePlay: already in play state"});
     }else if (media_state == STATE_INITIALIZED || media_state == STATE_PAUSE) {
@@ -280,27 +358,31 @@ void NativeVideoPlayer::handlePlay() {
     }
 }
 
-void NativeVideoPlayer::handlePause() {
+void AudioController::handleSeek(float seek_dst) {
+    if (media_state < STATE_INITIALIZED || media_state > STATE_STOP) {
+        LogUtil::logE(TAG, {"handleSeek: invalid state, " , std::to_string(media_state)});
+        return;
+    }
+    media_state = STATE_SEEK;
+    p_ffmpeg_core->seek_dst = seek_dst;
+    pthread_mutex_lock(&main_evt_mutex_lock);
+    Msg seek_msg{.what = MSG_SEEK};
+    p_msg_queue->push(seek_msg);
+    pthread_cond_signal(&main_evt_cond_lock);
+    pthread_mutex_unlock(&main_evt_mutex_lock);
+}
+
+void AudioController::handlePause() {
     if (media_state == STATE_PAUSE) {
         LogUtil::logD(TAG, {"handlePause: already in pause state"});
     }else if (media_state == STATE_PLAY) {
         media_state = STATE_PAUSE;
-        Msg msg{.what = MSG_PAUSE};
-        pthread_mutex_lock(&main_evt_mutex_lock);
-        p_msg_queue->push(msg);
-        pthread_cond_signal(&main_evt_cond_lock);
-        pthread_mutex_unlock(&main_evt_mutex_lock);
-
-        pthread_mutex_lock(&audio_evt_mutex_lock);
-        p_audio_msg_queue->push(msg);
-        pthread_cond_signal(&audio_evt_cond_lock);
-        pthread_mutex_unlock(&audio_evt_mutex_lock);
     } else {
         LogUtil::logD(TAG, {"handlePause: invalid state ", (const char *) media_state});
     }
 }
 
-void NativeVideoPlayer::handleStop() {
+void AudioController::handleStop() {
     if (media_state >= STATE_INITIALIZED && media_state < STATE_STOP) {
         media_state = STATE_STOP;
         Msg msg{.what = MSG_STOP};
@@ -319,7 +401,7 @@ void NativeVideoPlayer::handleStop() {
  * create event-control thread
  * @return
  */
-bool NativeVideoPlayer::init() {
+bool AudioController::init() {
     if (p_ffmpeg_core == nullptr) {
         LogUtil::logE(TAG, {"init: ffmpeg core is null"});
         return false;
@@ -329,7 +411,7 @@ bool NativeVideoPlayer::init() {
     return true;
 }
 
-void NativeVideoPlayer::setPath(char *path) {
+void AudioController::setPath(char *path) {
     if (path != nullptr && path[0] != '\0') {
         if (p_ffmpeg_core == nullptr) {
             p_ffmpeg_core = new FFMpegCore;
@@ -338,7 +420,29 @@ void NativeVideoPlayer::setPath(char *path) {
     }
 }
 
-bool NativeVideoPlayer::registerSelf(JNIEnv *env) {
+void AudioController::seekToDst(float dst_ratio) {
+    float target;
+    if(dst_ratio < 0)
+        target = 0;
+    else if(dst_ratio > 1)
+        target = 1;
+    else
+        target = dst_ratio;
+    LogUtil::logD(TAG, {"seekToDst: original = ", std::to_string(dst_ratio), ", target = ", std::to_string(target)});
+    pthread_mutex_lock(&audio_packet_mutex_lock);
+    //clear the packet queue
+    p_audio_packet_queue = new std::queue<AVPacket>();
+    pthread_mutex_unlock(&audio_packet_mutex_lock);
+    avformat_seek_file(p_ffmpeg_core->p_fmt_ctx, -1, INT64_MIN,
+                       p_ffmpeg_core->p_fmt_ctx->duration * target, INT64_MAX, 0);
+    last_main_clock = main_clock = 0;
+    p_ffmpeg_core->seek_dst = -1;
+    if (p_audio != nullptr) {
+        avcodec_flush_buffers(p_audio->p_audio_decoder->p_audio_codec_ctx);
+    }
+}
+
+bool AudioController::registerSelf(JNIEnv *env) {
     int count = sizeof(jniMethods) / sizeof(jniMethods[0]);
     jclass javaClass = env->FindClass(CLASS);
     if(!javaClass) {
@@ -354,7 +458,7 @@ bool NativeVideoPlayer::registerSelf(JNIEnv *env) {
     return false;
 }
 
-bool NativeVideoPlayer::threadAttachJvm(JavaVM *p_jvm, JNIEnv **pp_env) {
+bool AudioController::threadAttachJvm(JavaVM *p_jvm, JNIEnv **pp_env) {
     if (p_jvm->GetEnv((void **) pp_env, JNI_VERSION_1_6) == JNI_EDETACHED) {
         if (p_jvm->AttachCurrentThread(pp_env, nullptr) != 0) {
             return false;

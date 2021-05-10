@@ -16,6 +16,7 @@ public:
     int audio_index;
     char* src_path;
     AVFormatContext* p_fmt_ctx;
+    float seek_dst;
 
     FFMpegCore() {
         audio_index = -1;

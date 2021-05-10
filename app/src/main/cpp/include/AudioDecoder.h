@@ -23,6 +23,7 @@ public:
     AVSampleFormat in_sample_fmt, out_sample_fmt;
     unsigned char* p_audio_buffer;
     AVRational time_base;
+    double media_time;
 
     AVFormatContext* p_fmt_ctx;
     AVCodec* p_audio_codec;

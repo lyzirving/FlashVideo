@@ -9,4 +9,6 @@
 
     <string name="tip_success">success</string>
     <string name="tip_fail">fail</string>
+
+    <string name="msg_default_time">00:00:00</string>
 </resources>
