@@ -27,6 +27,7 @@ public:
     void setPlayState();
     void setPauseState();
     void setStopState();
+    void setVolume(int val);
 private:
 };
 

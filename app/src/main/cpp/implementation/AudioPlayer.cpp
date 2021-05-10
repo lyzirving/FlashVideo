@@ -56,3 +56,7 @@ void AudioPlayer::setStopState(){
     p_audio_engine->setStopState();
 }
 
+void AudioPlayer::setVolume(int val) {
+    p_audio_engine->setVolume(val);
+}
+

@@ -57,6 +57,11 @@ static void nSeek(JNIEnv *env, jclass clazz, jlong pointer, jfloat seekDst) {
     p_control->handleSeek(seekDst);
 }
 
+static void nSetVolume(JNIEnv *env, jclass clazz, jlong pointer, jint volume) {
+    auto* p_control = reinterpret_cast<AudioController *>(pointer);
+    p_control->handleSetVolume(volume);
+}
+
 static JNINativeMethod jniMethods[] = {
         {
                 "nativeCreate",
@@ -97,6 +102,11 @@ static JNINativeMethod jniMethods[] = {
                 "nativeSeek",
                 "(JF)V",
                 (void *) nSeek
+        },
+        {
+                "nativeSetVolume",
+                "(JI)V",
+                (void *) nSetVolume
         },
 };
 
@@ -393,6 +403,10 @@ void AudioController::handleStop() {
     } else {
         LogUtil::logD(TAG, {"handleStop: invalid state ", (const char *) media_state});
     }
+}
+
+void AudioController::handleSetVolume(int volume) {
+    p_audio->setVolume(volume);
 }
 
 /**

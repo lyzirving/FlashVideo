@@ -61,6 +61,7 @@ public:
     void handlePause();
     void handleSeek(float seek_dst);
     void handleStop();
+    void handleSetVolume(int volume);
     void setPath(char* path);
     void seekToDst(float dst_ratio);
 private:

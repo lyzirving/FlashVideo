@@ -157,6 +157,34 @@ void AudioEngine::setStopState() {
     }
 }
 
+void AudioEngine::setVolume(int val) {
+    if (p_volume_itf == nullptr) {
+        LogUtil::logE(TAG, {"setVolume: volume interface is null"});
+    } else {
+        SLresult res;
+        if (val > 30) {
+            res = (*p_volume_itf)->SetVolumeLevel(p_volume_itf, (100 - val) * -20);
+        } else if (val > 25) {
+            res = (*p_volume_itf)->SetVolumeLevel(p_volume_itf, (100 - val) * -22);
+        } else if (val > 20) {
+            res = (*p_volume_itf)->SetVolumeLevel(p_volume_itf, (100 - val) * -25);
+        } else if (val > 15) {
+            res = (*p_volume_itf)->SetVolumeLevel(p_volume_itf, (100 - val) * -28);
+        } else if (val > 10) {
+            res = (*p_volume_itf)->SetVolumeLevel(p_volume_itf, (100 - val) * -30);
+        } else if (val > 5) {
+            res = (*p_volume_itf)->SetVolumeLevel(p_volume_itf, (100 - val) * -34);
+        } else if (val > 3) {
+            res = (*p_volume_itf)->SetVolumeLevel(p_volume_itf, (100 - val) * -37);
+        } else if (val > 0) {
+            res = (*p_volume_itf)->SetVolumeLevel(p_volume_itf, (100 - val) * -40);
+        } else {
+            res = (*p_volume_itf)->SetVolumeLevel(p_volume_itf, (100 - val) * -100);
+        }
+        LogUtil::logD(TAG, {"setVolume: ", std::to_string(val), ", result = ", std::to_string(res)});
+    }
+}
+
 void AudioEngine::release() {
     if (p_audio_player_obj != nullptr) {
         (*p_audio_player_obj)->Destroy(p_audio_player_obj);

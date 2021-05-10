@@ -85,6 +85,14 @@ public class FlashVideo {
         }
     }
 
+    public void setVolume(int volume) {
+        if (mNativePtr == INVALID_POINTER) {
+            LogUtil.e(TAG, "setVolume: pointer is invalid");
+        } else {
+            nativeSetVolume(mNativePtr, volume);
+        }
+    }
+
     public void setTotalTime(double time) {
         mTotalTime = time;
     }
@@ -97,4 +105,5 @@ public class FlashVideo {
     private native static void nativeSeek(long ptr, float seekDst);
     private native static void nativeStop(long ptr);
     private native static void nativeSetListener(long ptr, VideoListenerAdapter listener);
+    private native static void nativeSetVolume(long ptr, int value);
 }

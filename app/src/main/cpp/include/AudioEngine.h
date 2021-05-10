@@ -21,7 +21,6 @@ public:
     slAndroidSimpleBufferQueueCallback p_buf_queue_callback;
     void* p_callback_obj;
 
-
     AudioEngine() {
         p_engine_obj = nullptr;
         p_engine_itf = nullptr;
@@ -44,6 +43,7 @@ public:
     void setPlayState();
     void setPauseState();
     void setStopState();
+    void setVolume(int val);
     void release();
 private:
     static SLuint32 getBitsPerSample(SLuint32 in_sample_fmt);

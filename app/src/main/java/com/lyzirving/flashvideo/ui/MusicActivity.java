@@ -37,7 +37,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     private VideoListenerAdapter mListener;
     private TextView mTvCurrentTime, mTvTotalTime;
     private boolean mProgressBarDragging;
-    private SeekBar mProgressBar;
+    private SeekBar mProgressBar, mVolumeBar;
 
     @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler() {
@@ -124,20 +124,41 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-    }
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
 
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
-        mProgressBarDragging = true;
+        switch (seekBar.getId()) {
+            case R.id.progress_bar: {
+                mProgressBarDragging = true;
+                break;
+            }
+            case R.id.volume_bar:
+            default: {
+                break;
+            }
+        }
     }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        mProgressBarDragging = false;
-        if (mFlashVideo != null) {
-            mFlashVideo.seek(seekBar.getProgress() * 1f / 100);
+        switch (seekBar.getId()) {
+            case R.id.progress_bar: {
+                mProgressBarDragging = false;
+                if (mFlashVideo != null) {
+                    mFlashVideo.seek(seekBar.getProgress() * 1f / 100);
+                }
+                break;
+            }
+            case R.id.volume_bar: {
+                if (mFlashVideo != null) {
+                    mFlashVideo.setVolume(seekBar.getProgress());
+                }
+                break;
+            }
+            default: {
+                break;
+            }
         }
     }
 
@@ -169,12 +190,15 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     private void initView() {
         mTvCurrentTime = findViewById(R.id.tv_current_time);
         mTvTotalTime = findViewById(R.id.tv_total_time);
-        mProgressBar = findViewById(R.id.seek_bar);
+        mProgressBar = findViewById(R.id.progress_bar);
+        mVolumeBar = findViewById(R.id.volume_bar);
         findViewById(R.id.btn_init).setOnClickListener(this);
         findViewById(R.id.btn_play).setOnClickListener(this);
         findViewById(R.id.btn_pause).setOnClickListener(this);
         findViewById(R.id.btn_stop).setOnClickListener(this);
         mProgressBar.setOnSeekBarChangeListener(this);
+        mVolumeBar.setOnSeekBarChangeListener(this);
         mProgressBar.setProgress(0);
+        mVolumeBar.setProgress(0);
     }
 }
