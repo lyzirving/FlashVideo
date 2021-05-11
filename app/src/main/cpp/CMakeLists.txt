@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 set(FFMPEG_HEAD ${CMAKE_SOURCE_DIR}/ffmpeghead)
+set(SOUND_TOUCH_HEAD ${CMAKE_SOURCE_DIR}/soundtouchhead)
 set(HEAR_DIR ${CMAKE_SOURCE_DIR}/include)
 set(SHARED_DIR ${CMAKE_SOURCE_DIR}/shared)
 
 include_directories(${FFMPEG_HEAD})
+include_directories(${SOUND_TOUCH_HEAD})
 include_directories(${HEAR_DIR})
 
 add_library(
@@ -99,10 +101,11 @@ set_target_properties(
         ${SHARED_DIR}/${ANDROID_ABI}/libswscale-5.so)
 
 aux_source_directory(${CMAKE_SOURCE_DIR}/implementation CPP_DIR)
+aux_source_directory(${CMAKE_SOURCE_DIR}/soundtouch SOUND_TOUCH_CPP_DIR)
 
 add_library( native-lib
              SHARED
-             native-lib.cpp ${CPP_DIR})
+             native-lib.cpp ${CPP_DIR} ${SOUND_TOUCH_CPP_DIR})
 
 find_library( # name of the lib
               lib-log

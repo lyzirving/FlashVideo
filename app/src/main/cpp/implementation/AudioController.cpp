@@ -62,6 +62,11 @@ static void nSetVolume(JNIEnv *env, jclass clazz, jlong pointer, jint volume) {
     p_control->handleSetVolume(volume);
 }
 
+static void nSetPitch(JNIEnv *env, jclass clazz, jlong pointer, jfloat pitch) {
+    auto* p_control = reinterpret_cast<AudioController *>(pointer);
+    p_control->handleSetPitch(pitch);
+}
+
 static JNINativeMethod jniMethods[] = {
         {
                 "nativeCreate",
@@ -108,6 +113,11 @@ static JNINativeMethod jniMethods[] = {
                 "(JI)V",
                 (void *) nSetVolume
         },
+        {
+                "nativeSetPitch",
+                "(JF)V",
+                (void *) nSetPitch
+        },
 };
 
 void audioBufQueueCallback(SLAndroidSimpleBufferQueueItf buf_queue_itf, void *args) {
@@ -116,12 +126,12 @@ void audioBufQueueCallback(SLAndroidSimpleBufferQueueItf buf_queue_itf, void *ar
         audio_thread_env = nullptr;
     }
     auto* p_control = (AudioController*)args;
-    p_control->dealAudioBufferQueueCallback();
+    if (p_control != nullptr)
+        p_control->dealAudioBufferQueueCallback();
     if (audio_thread_env != nullptr) {
         p_global_jvm->DetachCurrentThread();
         audio_thread_env = nullptr;
     }
-
 }
 
 void *audioLooper(void *args) {
@@ -150,35 +160,47 @@ void AudioController::dealAudioLoop(JNIEnv* env) {
             case MSG_PLAY: {
                 LogUtil::logD(TAG, {"dealAudioLoop: handle msg play"});
                 p_audio->setPlayState();
-                pthread_mutex_lock(&audio_packet_mutex_lock);
-                if (p_audio_packet_queue->empty()) {
-                    pthread_cond_wait(&audio_packet_cond_lock, &audio_packet_mutex_lock);
-                }
-                if (media_state == STATE_PLAY) {
+                bool finish = false;
+                while(!finish && media_state == STATE_PLAY) {
+                    pthread_mutex_lock(&audio_packet_mutex_lock);
+                    if (p_audio_packet_queue->empty()) {
+                        pthread_cond_wait(&audio_packet_cond_lock, &audio_packet_mutex_lock);
+                    }
                     audio_packet = p_audio_packet_queue->front();
                     tmp_audio_data = p_audio->decodePacket(&audio_packet);
                     if (tmp_audio_data->buf_size > 0) {
                         if(tmp_audio_data->now_time < main_clock) tmp_audio_data->now_time = main_clock;
                         main_clock = tmp_audio_data->now_time;
                         last_main_clock = main_clock;
-                        p_audio->enqueueAudio(tmp_audio_data);
+                        finish = p_audio->enqueueAudio(tmp_audio_data);
                     }
                     av_packet_unref(&audio_packet);
                     p_audio_packet_queue->pop();
+                    pthread_mutex_unlock(&audio_packet_mutex_lock);
                 }
-                pthread_mutex_unlock(&audio_packet_mutex_lock);
                 break;
             }
             case MSG_STOP: {
                 LogUtil::logD(TAG, {"dealAudioLoop: handle msg stop"});
                 p_audio_msg_queue->pop();
                 p_audio->setStopState();
+
+                pthread_mutex_lock(&audio_packet_mutex_lock);
+                if (p_audio_packet_queue != nullptr)
+                    delete p_audio_packet_queue;
+                p_audio_packet_queue = nullptr;
+                pthread_cond_signal(&audio_packet_cond_lock);
+                pthread_mutex_unlock(&audio_packet_mutex_lock);
+
                 Msg msg_stop{.what = MSG_STOP};
                 pthread_mutex_lock(&main_evt_mutex_lock);
                 p_msg_queue->push(msg_stop);
                 pthread_cond_signal(&main_evt_cond_lock);
                 pthread_mutex_unlock(&main_evt_mutex_lock);
                 goto quit;
+            }
+            case MSG_PAUSE: {
+                break;
             }
             case MSG_SEEK: {
                 break;
@@ -193,15 +215,21 @@ void AudioController::dealAudioLoop(JNIEnv* env) {
     quit:
     LogUtil::logD(TAG, {"dealAudioLoop: quit"});
     pthread_mutex_unlock(&audio_evt_mutex_lock);
-    p_audio->release();
 }
 
 void AudioController::dealAudioBufferQueueCallback() {
-    if (media_state == STATE_PLAY) {
+    bool finish = false;
+    while(!finish && media_state == STATE_PLAY) {
+        //make it safe in concurrent env
+        if (p_audio_packet_queue == nullptr || p_audio == nullptr)
+            break;
         pthread_mutex_lock(&audio_packet_mutex_lock);
         if (p_audio_packet_queue->empty()) {
             pthread_cond_wait(&audio_packet_cond_lock, &audio_packet_mutex_lock);
         }
+        //make it safe in concurrent env
+        if (p_audio_packet_queue == nullptr || p_audio == nullptr)
+            break;
         AVPacket audio_packet = p_audio_packet_queue->front();
         AudioData* audio_data = p_audio->decodePacket(&audio_packet);
         if (audio_data->buf_size > 0) {
@@ -214,7 +242,7 @@ void AudioController::dealAudioBufferQueueCallback() {
                     && audio_thread_env != nullptr)
                     JavaCallbackUtil::callMediaTickTime(audio_thread_env, listener, main_clock);
             }
-            p_audio->enqueueAudio(audio_data);
+            finish = p_audio->enqueueAudio(audio_data);
         }
         av_packet_unref(&audio_packet);
         p_audio_packet_queue->pop();
@@ -235,10 +263,12 @@ void AudioController::dealMainEvtLoop(JNIEnv* env) {
     if (!p_audio->createBufQueuePlayer(audioBufQueueCallback, this)) {
         goto quit;
     }
+    p_audio->initSoundTouch();
     media_state = STATE_INITIALIZED;
     listener = findListener(reinterpret_cast<jlong>(this));
     if (listener != nullptr) JavaCallbackUtil::callMediaPrepare(env, listener, p_audio->p_audio_decoder->media_time);
     pthread_create(&audio_thread, nullptr, audioLooper, this);
+    pthread_setname_np(audio_thread, "audio-event-thread");
     pthread_mutex_lock(&main_evt_mutex_lock);
     while(true) {
         if (p_msg_queue->empty()) {
@@ -409,6 +439,15 @@ void AudioController::handleSetVolume(int volume) {
     p_audio->setVolume(volume);
 }
 
+void AudioController::handleSetPitch(float pitch) {
+    if (p_audio != nullptr) {
+        //be sure to use lock, because in audio thread, there might be concurrent problem
+        pthread_mutex_lock(&audio_packet_mutex_lock);
+        p_audio->setPitch(pitch);
+        pthread_mutex_unlock(&audio_packet_mutex_lock);
+    }
+}
+
 /**
  * create ffmpeg env
  * create AVPacket-thread, and start to generate AVPacket
@@ -422,6 +461,7 @@ bool AudioController::init() {
     }
     pthread_t event_thread;
     pthread_create(&event_thread, nullptr, eventLooper, this);
+    pthread_setname_np(event_thread, "main-event-thread");
     return true;
 }
 
@@ -451,9 +491,8 @@ void AudioController::seekToDst(float dst_ratio) {
                        p_ffmpeg_core->p_fmt_ctx->duration * target, INT64_MAX, 0);
     last_main_clock = main_clock = 0;
     p_ffmpeg_core->seek_dst = -1;
-    if (p_audio != nullptr) {
+    if (p_audio != nullptr)
         avcodec_flush_buffers(p_audio->p_audio_decoder->p_audio_codec_ctx);
-    }
 }
 
 bool AudioController::registerSelf(JNIEnv *env) {

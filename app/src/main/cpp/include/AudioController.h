@@ -29,17 +29,16 @@ public:
         pthread_cond_init(&audio_packet_cond_lock, nullptr);
     }
     ~AudioController() {
-        if (p_ffmpeg_core != nullptr) {
-            delete p_ffmpeg_core;
-            p_ffmpeg_core = nullptr;
-        }
-        if (p_audio != nullptr) {
-            delete p_audio;
-            p_audio = nullptr;
-        }
-        delete p_audio_packet_queue;
         delete p_audio_msg_queue;
+        p_audio_msg_queue = nullptr;
         delete p_msg_queue;
+        p_msg_queue = nullptr;
+
+        pthread_mutex_lock(&audio_packet_mutex_lock);
+        if (p_audio_packet_queue != nullptr)
+            delete p_audio_packet_queue;
+        p_audio_packet_queue = nullptr;
+        pthread_mutex_unlock(&audio_packet_mutex_lock);
 
         pthread_mutex_destroy(&main_evt_mutex_lock);
         pthread_cond_destroy(&main_evt_cond_lock);
@@ -60,6 +59,7 @@ public:
     void handlePlay();
     void handlePause();
     void handleSeek(float seek_dst);
+    void handleSetPitch(float pitch);
     void handleStop();
     void handleSetVolume(int volume);
     void setPath(char* path);

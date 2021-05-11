@@ -16,7 +16,7 @@ bool AudioPlayer::init(AVFormatContext *in_ptr_fmt_ctx, int in_audio_index) {
     }
     p_audio_engine = new AudioEngine;
     if (!p_audio_engine->init(p_audio_decoder->out_sample_rate, p_audio_decoder->out_sample_fmt,
-            p_audio_decoder->in_channels)) {
+            p_audio_decoder->in_channel_count)) {
         goto fail;
     }
     return true;
@@ -25,12 +25,33 @@ bool AudioPlayer::init(AVFormatContext *in_ptr_fmt_ctx, int in_audio_index) {
     return false;
 }
 
+void AudioPlayer::initSoundTouch() {
+    if(p_sound_touch == nullptr) {
+        p_sound_touch = new soundtouch::SoundTouch;
+        p_sound_touch->setSampleRate(p_audio_decoder->out_sample_rate);
+        p_sound_touch->setChannels(p_audio_decoder->out_channel_count);
+        p_st_buf = static_cast<short *>(malloc(p_audio_decoder->out_sample_rate * 2 * p_audio_decoder->out_channel_count));
+        p_sound_touch->setPitch(1);
+        p_sound_touch->setTempo(1);
+    }
+}
+
 AudioData* AudioPlayer::decodePacket(AVPacket *in_ptr_packet) {
     return p_audio_decoder->decodePacket(in_ptr_packet);
 }
 
-void AudioPlayer::enqueueAudio(AudioData *data) {
-    p_audio_engine->enqueueAudio(data->buf_size, data->data);
+bool AudioPlayer::enqueueAudio(AudioData *data) {
+    for (int i = 0; i < data->buf_size / 2 + 1; ++i) {
+        p_st_buf[i] = (data->data[2 * i] | ((data->data[2 * i + 1]) << 8));
+    }
+    p_sound_touch->putSamples(p_st_buf, data->buf_size / 4);
+    int sample_num = p_sound_touch->receiveSamples(p_st_buf, p_audio_decoder->out_sample_rate * 4);
+    if (sample_num > 0) {
+        p_audio_engine->enqueueAudio(sample_num * 4, reinterpret_cast<unsigned char *>(p_st_buf));
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void AudioPlayer::release() {
@@ -41,6 +62,14 @@ void AudioPlayer::release() {
     if (p_audio_engine != nullptr) {
         delete p_audio_engine;
         p_audio_engine = nullptr;
+    }
+    if(p_sound_touch != nullptr) {
+        delete p_sound_touch;
+        p_sound_touch = nullptr;
+    }
+    if (p_st_buf != nullptr) {
+        free(p_st_buf);
+        p_st_buf = nullptr;
     }
 }
 
@@ -58,5 +87,10 @@ void AudioPlayer::setStopState(){
 
 void AudioPlayer::setVolume(int val) {
     p_audio_engine->setVolume(val);
+}
+
+void AudioPlayer::setPitch(float pitch) {
+    if (p_sound_touch != nullptr)
+        p_sound_touch->setPitch(pitch);
 }
 

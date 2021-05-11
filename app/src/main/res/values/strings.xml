@@ -8,6 +8,10 @@
     <string name="tip_stop">stop</string>
     <string name="tip_progress">Progress</string>
     <string name="tip_volume">Volume</string>
+    <string name="tip_pitch_0.5">Pitch x 0.5</string>
+    <string name="tip_pitch_1.0">Pitch Original</string>
+    <string name="tip_pitch_1.5">Pitch x 1.5</string>
+    <string name="tip_pitch_2.0">Pitch x 2.0</string>
 
     <string name="tip_success">success</string>
     <string name="tip_fail">fail</string>

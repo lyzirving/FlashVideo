@@ -27,7 +27,7 @@ bool AudioDecoder::init(AVFormatContext *in_ptr_fmt_ctx, int in_audio_index) {
     p_swr_ctx = swr_alloc();
     in_sample_fmt = p_audio_codec_ctx->sample_fmt;
     out_sample_fmt = AV_SAMPLE_FMT_S16;
-    in_channels = p_audio_codec_ctx->channels;
+    in_channel_count = p_audio_codec_ctx->channels;
     in_sample_rate = p_audio_codec_ctx->sample_rate;
     out_sample_rate = 44100;
     in_channel_layout = p_audio_codec_ctx->channel_layout;

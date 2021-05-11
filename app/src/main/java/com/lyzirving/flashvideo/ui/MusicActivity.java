@@ -117,6 +117,38 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 }
                 break;
             }
+            case R.id.btn_pitch_0_5: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: set pitch, video obj is null");
+                } else {
+                    mFlashVideo.setPitch(0.5f);
+                }
+                break;
+            }
+            case R.id.btn_pitch_1_0: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: set pitch, video obj is null");
+                } else {
+                    mFlashVideo.setPitch(1f);
+                }
+                break;
+            }
+            case R.id.btn_pitch_1_5: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: set pitch, video obj is null");
+                } else {
+                    mFlashVideo.setPitch(1.5f);
+                }
+                break;
+            }
+            case R.id.btn_pitch_2_0: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: set pitch, video obj is null");
+                } else {
+                    mFlashVideo.setPitch(2f);
+                }
+                break;
+            }
             default: {
                 break;
             }
@@ -196,6 +228,10 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
         findViewById(R.id.btn_play).setOnClickListener(this);
         findViewById(R.id.btn_pause).setOnClickListener(this);
         findViewById(R.id.btn_stop).setOnClickListener(this);
+        findViewById(R.id.btn_pitch_0_5).setOnClickListener(this);
+        findViewById(R.id.btn_pitch_1_0).setOnClickListener(this);
+        findViewById(R.id.btn_pitch_1_5).setOnClickListener(this);
+        findViewById(R.id.btn_pitch_2_0).setOnClickListener(this);
         mProgressBar.setOnSeekBarChangeListener(this);
         mVolumeBar.setOnSeekBarChangeListener(this);
         mProgressBar.setProgress(0);

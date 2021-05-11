@@ -16,10 +16,9 @@ extern "C" {
 class AudioDecoder {
 public:
     int audio_index;
-    int in_channels, out_channels;
+    int in_channel_count, out_channel_count;
     int in_sample_rate, out_sample_rate;
     uint64_t in_channel_layout, out_channel_layout;
-    int out_channel_count;
     AVSampleFormat in_sample_fmt, out_sample_fmt;
     unsigned char* p_audio_buffer;
     AVRational time_base;

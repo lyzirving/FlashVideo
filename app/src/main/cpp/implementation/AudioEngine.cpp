@@ -20,14 +20,35 @@ SLuint32 AudioEngine::getChannelMask(SLuint32 channels) {
 }
 
 SLuint32 AudioEngine::getSamplesPerSec(SLuint32 sampleRate) {
-    if (sampleRate == 8000) {
-        return SL_SAMPLINGRATE_8;
-    } else if (sampleRate == 12000) {
-        return SL_SAMPLINGRATE_12;
-    } else if (sampleRate == 16000) {
-        return SL_SAMPLINGRATE_16;
-    } else {
-        return SL_SAMPLINGRATE_44_1;
+    switch (sampleRate) {
+        case 8000:
+            return SL_SAMPLINGRATE_8;
+        case 11025:
+            return SL_SAMPLINGRATE_11_025;
+        case 12000:
+            return SL_SAMPLINGRATE_12;
+        case 16000:
+            return SL_SAMPLINGRATE_16;
+        case 22050:
+            return SL_SAMPLINGRATE_22_05;
+        case 24000:
+            return SL_SAMPLINGRATE_24;
+        case 32000:
+            return SL_SAMPLINGRATE_32;
+        case 44100:
+            return SL_SAMPLINGRATE_44_1;
+        case 48000:
+            return SL_SAMPLINGRATE_48;
+        case 64000:
+            return SL_SAMPLINGRATE_64;
+        case 88200:
+            return SL_SAMPLINGRATE_88_2;
+        case 96000:
+            return SL_SAMPLINGRATE_96;
+        case 192000:
+            return SL_SAMPLINGRATE_192;
+        default:
+            return SL_SAMPLINGRATE_44_1;
     }
 }
 
