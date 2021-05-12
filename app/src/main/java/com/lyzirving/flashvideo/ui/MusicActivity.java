@@ -11,7 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.lyzirving.flashvideo.R;
-import com.lyzirving.flashvideo.core.FlashVideo;
+import com.lyzirving.flashvideo.core.FlashAudio;
 import com.lyzirving.flashvideo.core.VideoListenerAdapter;
 import com.lyzirving.flashvideo.util.LogUtil;
 import com.lyzirving.flashvideo.util.TimeUtil;
@@ -32,7 +32,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     private static final int MSG_STOP = 3;
     private static final String LOCAL_SRC_PATH = Environment.getExternalStorageDirectory().getAbsolutePath()
             + File.separator + "0test" + File.separator + "source" + File.separator + "SpaceBound.mp3";
-    private FlashVideo mFlashVideo;
+    private FlashAudio mFlashAudio;
 
     private VideoListenerAdapter mListener;
     private TextView mTvCurrentTime, mTvTotalTime;
@@ -46,19 +46,19 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
             super.handleMessage(msg);
             switch (msg.what) {
                 case MSG_PREPARE: {
-                    mFlashVideo.setTotalTime((Double) msg.obj);
+                    mFlashAudio.setTotalTime((Double) msg.obj);
                     mTvTotalTime.setText(TimeUtil.transferDoubleTimeToHourMinuteSecond((Double) msg.obj));
                     break;
                 }
                 case MSG_TIME_TICK: {
                     mTvCurrentTime.setText(TimeUtil.transferDoubleTimeToHourMinuteSecond((Double) msg.obj));
                     if (!mProgressBarDragging) {
-                        mProgressBar.setProgress((int)((Double) msg.obj / mFlashVideo.getTotalTime() * 100));
+                        mProgressBar.setProgress((int)((Double) msg.obj / mFlashAudio.getTotalTime() * 100));
                     }
                     break;
                 }
                 case MSG_STOP: {
-                    mFlashVideo = null;
+                    mFlashAudio = null;
                     mTvCurrentTime.setText(getString(R.string.msg_default_time));
                     mTvTotalTime.setText(getString(R.string.msg_default_time));
                     mProgressBar.setProgress(0);
@@ -82,11 +82,11 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_init: {
-                if (mFlashVideo == null) {
-                    mFlashVideo = new FlashVideo();
-                    mFlashVideo.setVideoListener(getVideoListener());
-                    mFlashVideo.setSourcePath(LOCAL_SRC_PATH);
-                    boolean success = mFlashVideo.init();
+                if (mFlashAudio == null) {
+                    mFlashAudio = new FlashAudio();
+                    mFlashAudio.setVideoListener(getVideoListener());
+                    mFlashAudio.setSourcePath(LOCAL_SRC_PATH);
+                    boolean success = mFlashAudio.init();
                     Toast.makeText(this,
                             success ? getString(R.string.tip_success) : getString(R.string.tip_fail),
                             Toast.LENGTH_SHORT).show();
@@ -94,90 +94,90 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 break;
             }
             case R.id.btn_play: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: play, video obj is null");
                 } else {
-                    mFlashVideo.play();
+                    mFlashAudio.play();
                 }
                 break;
             }
             case R.id.btn_pause: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: pause, video obj is null");
                 } else {
-                    mFlashVideo.pause();
+                    mFlashAudio.pause();
                 }
                 break;
             }
             case R.id.btn_stop: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: stop, video obj is null");
                 } else {
-                    mFlashVideo.stop();
+                    mFlashAudio.stop();
                 }
                 break;
             }
             case R.id.btn_pitch_0_5: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: set pitch, video obj is null");
                 } else {
-                    mFlashVideo.setPitch(0.5);
+                    mFlashAudio.setPitch(0.5);
                 }
                 break;
             }
             case R.id.btn_pitch_1_0: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: set pitch, video obj is null");
                 } else {
-                    mFlashVideo.setPitch(1);
+                    mFlashAudio.setPitch(1);
                 }
                 break;
             }
             case R.id.btn_pitch_1_5: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: set pitch, video obj is null");
                 } else {
-                    mFlashVideo.setPitch(1.5);
+                    mFlashAudio.setPitch(1.5);
                 }
                 break;
             }
             case R.id.btn_pitch_2_0: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: set pitch, video obj is null");
                 } else {
-                    mFlashVideo.setPitch(2);
+                    mFlashAudio.setPitch(2);
                 }
                 break;
             }
             case R.id.btn_tempo_0_5: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: set tempo, video obj is null");
                 } else {
-                    mFlashVideo.setTempo(0.5);
+                    mFlashAudio.setTempo(0.5);
                 }
                 break;
             }
             case R.id.btn_tempo_original: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: set tempo, video obj is null");
                 } else {
-                    mFlashVideo.setTempo(1);
+                    mFlashAudio.setTempo(1);
                 }
                 break;
             }
             case R.id.btn_tempo_1_5: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: set tempo, video obj is null");
                 } else {
-                    mFlashVideo.setTempo(1.5);
+                    mFlashAudio.setTempo(1.5);
                 }
                 break;
             }
             case R.id.btn_tempo_2_0: {
-                if (mFlashVideo == null) {
+                if (mFlashAudio == null) {
                     LogUtil.e(TAG, "onClick: set tempo, video obj is null");
                 } else {
-                    mFlashVideo.setTempo(2);
+                    mFlashAudio.setTempo(2);
                 }
                 break;
             }
@@ -209,14 +209,14 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
         switch (seekBar.getId()) {
             case R.id.progress_bar: {
                 mProgressBarDragging = false;
-                if (mFlashVideo != null) {
-                    mFlashVideo.seek(seekBar.getProgress() * 1f / 100);
+                if (mFlashAudio != null) {
+                    mFlashAudio.seek(seekBar.getProgress() * 1f / 100);
                 }
                 break;
             }
             case R.id.volume_bar: {
-                if (mFlashVideo != null) {
-                    mFlashVideo.setVolume(seekBar.getProgress());
+                if (mFlashAudio != null) {
+                    mFlashAudio.setVolume(seekBar.getProgress());
                 }
                 break;
             }

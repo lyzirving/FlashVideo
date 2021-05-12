@@ -19,6 +19,10 @@ import com.lyzirving.flashvideo.util.LogUtil;
  * @author lyzirving
  */
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    static {
+        System.loadLibrary("native-lib");
+    }
+
     private static final String TAG = "MainActivity";
     private static final int CODE_REQUEST_READ_WRITE_PERMISSION = 0x01;
 

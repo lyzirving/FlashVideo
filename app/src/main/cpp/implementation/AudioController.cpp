@@ -4,7 +4,7 @@
 #include <map>
 
 #define TAG "AudioController"
-#define CLASS "com/lyzirving/flashvideo/core/FlashVideo"
+#define CLASS "com/lyzirving/flashvideo/core/FlashAudio"
 
 static JavaVM* p_global_jvm = nullptr;
 static std::map<jlong, jobject> global_listeners;

@@ -1,5 +1,6 @@
 #include <jni.h>
 
+#include "VideoController.h"
 #include "AudioController.h"
 #include "LogUtil.h"
 
