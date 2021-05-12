@@ -1,6 +1,6 @@
 # FlashVideo
-a demo to use ffmpeg, opengl es, opensl es to play music, video on Android
-it is a repository to record the process of studying media group on Android for me
+a demo to use ffmpeg, opengl es, opensl es to play music, video on Android.
+it is a repository to record the process of studying media group on Android for me.
 
 # Function Preview
 by now, this demo repository supports a simple music player, it uses ffmpeg to decode the music source into pcm data, 
