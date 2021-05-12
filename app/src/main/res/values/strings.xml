@@ -12,6 +12,10 @@
     <string name="tip_pitch_1.0">Pitch Original</string>
     <string name="tip_pitch_1.5">Pitch x 1.5</string>
     <string name="tip_pitch_2.0">Pitch x 2.0</string>
+    <string name="tip_tempo_0.5">Tempo x 0.5</string>
+    <string name="tip_tempo_1.0">Tempo Original</string>
+    <string name="tip_tempo_1.5">Tempo x 1.5</string>
+    <string name="tip_tempo_2.0">Tempo x 2.0</string>
 
     <string name="tip_success">success</string>
     <string name="tip_fail">fail</string>

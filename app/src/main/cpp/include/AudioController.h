@@ -59,7 +59,8 @@ public:
     void handlePlay();
     void handlePause();
     void handleSeek(float seek_dst);
-    void handleSetPitch(float pitch);
+    void handleSetPitch(double pitch);
+    void handleSetTempo(double pitch);
     void handleStop();
     void handleSetVolume(int volume);
     void setPath(char* path);

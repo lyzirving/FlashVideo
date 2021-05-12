@@ -62,9 +62,14 @@ static void nSetVolume(JNIEnv *env, jclass clazz, jlong pointer, jint volume) {
     p_control->handleSetVolume(volume);
 }
 
-static void nSetPitch(JNIEnv *env, jclass clazz, jlong pointer, jfloat pitch) {
+static void nSetPitch(JNIEnv *env, jclass clazz, jlong pointer, jdouble pitch) {
     auto* p_control = reinterpret_cast<AudioController *>(pointer);
     p_control->handleSetPitch(pitch);
+}
+
+static void nSetTempo(JNIEnv *env, jclass clazz, jlong pointer, jdouble pitch) {
+    auto* p_control = reinterpret_cast<AudioController *>(pointer);
+    p_control->handleSetTempo(pitch);
 }
 
 static JNINativeMethod jniMethods[] = {
@@ -115,8 +120,13 @@ static JNINativeMethod jniMethods[] = {
         },
         {
                 "nativeSetPitch",
-                "(JF)V",
+                "(JD)V",
                 (void *) nSetPitch
+        },
+        {
+                "nativeSetTempo",
+                "(JD)V",
+                (void *) nSetTempo
         },
 };
 
@@ -439,11 +449,20 @@ void AudioController::handleSetVolume(int volume) {
     p_audio->setVolume(volume);
 }
 
-void AudioController::handleSetPitch(float pitch) {
+void AudioController::handleSetPitch(double pitch) {
     if (p_audio != nullptr) {
         //be sure to use lock, because in audio thread, there might be concurrent problem
         pthread_mutex_lock(&audio_packet_mutex_lock);
         p_audio->setPitch(pitch);
+        pthread_mutex_unlock(&audio_packet_mutex_lock);
+    }
+}
+
+void AudioController::handleSetTempo(double tempo) {
+    if (p_audio != nullptr) {
+        //be sure to use lock, because in audio thread, there might be concurrent problem
+        pthread_mutex_lock(&audio_packet_mutex_lock);
+        p_audio->setTempo(tempo);
         pthread_mutex_unlock(&audio_packet_mutex_lock);
     }
 }

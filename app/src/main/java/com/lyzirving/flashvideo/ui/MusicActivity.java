@@ -121,7 +121,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 if (mFlashVideo == null) {
                     LogUtil.e(TAG, "onClick: set pitch, video obj is null");
                 } else {
-                    mFlashVideo.setPitch(0.5f);
+                    mFlashVideo.setPitch(0.5);
                 }
                 break;
             }
@@ -129,7 +129,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 if (mFlashVideo == null) {
                     LogUtil.e(TAG, "onClick: set pitch, video obj is null");
                 } else {
-                    mFlashVideo.setPitch(1f);
+                    mFlashVideo.setPitch(1);
                 }
                 break;
             }
@@ -137,7 +137,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 if (mFlashVideo == null) {
                     LogUtil.e(TAG, "onClick: set pitch, video obj is null");
                 } else {
-                    mFlashVideo.setPitch(1.5f);
+                    mFlashVideo.setPitch(1.5);
                 }
                 break;
             }
@@ -145,7 +145,39 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 if (mFlashVideo == null) {
                     LogUtil.e(TAG, "onClick: set pitch, video obj is null");
                 } else {
-                    mFlashVideo.setPitch(2f);
+                    mFlashVideo.setPitch(2);
+                }
+                break;
+            }
+            case R.id.btn_tempo_0_5: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: set tempo, video obj is null");
+                } else {
+                    mFlashVideo.setTempo(0.5);
+                }
+                break;
+            }
+            case R.id.btn_tempo_original: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: set tempo, video obj is null");
+                } else {
+                    mFlashVideo.setTempo(1);
+                }
+                break;
+            }
+            case R.id.btn_tempo_1_5: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: set tempo, video obj is null");
+                } else {
+                    mFlashVideo.setTempo(1.5);
+                }
+                break;
+            }
+            case R.id.btn_tempo_2_0: {
+                if (mFlashVideo == null) {
+                    LogUtil.e(TAG, "onClick: set tempo, video obj is null");
+                } else {
+                    mFlashVideo.setTempo(2);
                 }
                 break;
             }
@@ -232,6 +264,10 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
         findViewById(R.id.btn_pitch_1_0).setOnClickListener(this);
         findViewById(R.id.btn_pitch_1_5).setOnClickListener(this);
         findViewById(R.id.btn_pitch_2_0).setOnClickListener(this);
+        findViewById(R.id.btn_tempo_0_5).setOnClickListener(this);
+        findViewById(R.id.btn_tempo_original).setOnClickListener(this);
+        findViewById(R.id.btn_tempo_1_5).setOnClickListener(this);
+        findViewById(R.id.btn_tempo_2_0).setOnClickListener(this);
         mProgressBar.setOnSeekBarChangeListener(this);
         mVolumeBar.setOnSeekBarChangeListener(this);
         mProgressBar.setProgress(0);

@@ -154,4 +154,48 @@
         android:text="@string/tip_pitch_2.0"
         android:textSize="18sp" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_tempo_0_5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="@+id/btn_init"
+        app:layout_constraintTop_toBottomOf="@+id/btn_pitch_2_0"
+        android:layout_marginTop="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_tempo_0.5"
+        android:textSize="18sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_tempo_original"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@+id/btn_tempo_0_5"
+        app:layout_constraintTop_toTopOf="@+id/btn_tempo_0_5"
+        android:layout_marginStart="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_tempo_1.0"
+        android:textSize="18sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_tempo_1_5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="@+id/btn_init"
+        app:layout_constraintTop_toBottomOf="@+id/btn_tempo_0_5"
+        android:layout_marginTop="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_tempo_1.5"
+        android:textSize="18sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_tempo_2_0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@+id/btn_tempo_1_5"
+        app:layout_constraintTop_toTopOf="@+id/btn_tempo_1_5"
+        android:layout_marginStart="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_tempo_2.0"
+        android:textSize="18sp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

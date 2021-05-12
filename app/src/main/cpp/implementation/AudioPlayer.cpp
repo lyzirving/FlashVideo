@@ -89,8 +89,13 @@ void AudioPlayer::setVolume(int val) {
     p_audio_engine->setVolume(val);
 }
 
-void AudioPlayer::setPitch(float pitch) {
+void AudioPlayer::setPitch(double pitch) {
     if (p_sound_touch != nullptr)
         p_sound_touch->setPitch(pitch);
+}
+
+void AudioPlayer::setTempo(double speed) {
+    if (p_sound_touch != nullptr)
+        p_sound_touch->setTempo(speed);
 }
 

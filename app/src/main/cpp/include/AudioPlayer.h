@@ -33,7 +33,10 @@ public:
     void setPauseState();
     void setStopState();
     void setVolume(int val);
-    void setPitch(float pitch);
+    //adjust tone
+    void setPitch(double pitch);
+    //adjust speed
+    void setTempo(double speed);
 private:
 };
 

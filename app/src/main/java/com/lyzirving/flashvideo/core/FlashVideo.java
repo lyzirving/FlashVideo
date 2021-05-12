@@ -93,11 +93,19 @@ public class FlashVideo {
         }
     }
 
-    public void setPitch(float pitch) {
+    public void setPitch(double pitch) {
         if (mNativePtr == INVALID_POINTER) {
             LogUtil.e(TAG, "setPitch: pointer is invalid");
         } else {
             nativeSetPitch(mNativePtr, pitch);
+        }
+    }
+
+    public void setTempo(double tempo) {
+        if (mNativePtr == INVALID_POINTER) {
+            LogUtil.e(TAG, "setTempo: pointer is invalid");
+        } else {
+            nativeSetTempo(mNativePtr, tempo);
         }
     }
 
@@ -110,7 +118,8 @@ public class FlashVideo {
     private native static void nativeSetPath(long ptr, String path);
     private native static void nativePlay(long ptr);
     private native static void nativePause(long ptr);
-    private native static void nativeSetPitch(long ptr, float pitch);
+    private native static void nativeSetPitch(long ptr, double pitch);
+    private native static void nativeSetTempo(long ptr, double tempo);
     private native static void nativeSeek(long ptr, float seekDst);
     private native static void nativeStop(long ptr);
     private native static void nativeSetListener(long ptr, VideoListenerAdapter listener);
