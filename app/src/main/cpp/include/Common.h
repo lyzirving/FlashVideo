@@ -21,4 +21,19 @@ enum MediaState{
     STATE_ERROR = 7,
 };
 
+struct VideoData {
+    long pts;
+    int* data;
+    int size;
+};
+
+struct DataYUV420 {
+    double pts;
+    unsigned char* y_data;
+    unsigned char* u_data;
+    unsigned char* v_data;
+    int width;
+    int height;
+};
+
 #endif //FLASHVIDEO_COMMON_H

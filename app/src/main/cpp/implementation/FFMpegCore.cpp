@@ -3,7 +3,7 @@
 
 #define TAG "FFMpegCore"
 
-bool FFMpegCore::createEnv() {
+bool FFMpegCore::createEnv(int mode) {
     if (src_path == nullptr || strlen(src_path) == 0) {
         LogUtil::logE(TAG, {"createEnv: src path is invalid"});
         goto fail;
@@ -24,10 +24,16 @@ bool FFMpegCore::createEnv() {
     for (int i = 0; i < p_fmt_ctx->nb_streams; i++) {
         if (p_fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             audio_index = i;
+        } else if (p_fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            video_index = i;
         }
     }
     if (-1 == audio_index) {
-        LogUtil::logD(TAG, {"failed to find audio or video streams"});
+        LogUtil::logD(TAG, {"failed to find audio track"});
+        goto fail;
+    }
+    if (mode == MODE_VIDEO && -1 == video_index) {
+        LogUtil::logD(TAG, {"failed to find video track"});
         goto fail;
     }
     return true;
@@ -47,6 +53,7 @@ void FFMpegCore::setPath(char *path) {
 }
 
 void FFMpegCore::release() {
+    LogUtil::logD(TAG, {"release"});
     if (p_fmt_ctx != nullptr) {
         avformat_close_input(&p_fmt_ctx);
         p_fmt_ctx = nullptr;

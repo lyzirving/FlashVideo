@@ -14,9 +14,11 @@ public:
     AudioController() {
         p_ffmpeg_core = nullptr;
         p_audio = nullptr;
+
         p_audio_packet_queue = new std::queue<AVPacket>();
         p_msg_queue = new std::queue<Msg>();
         p_audio_msg_queue = new std::queue<Msg>();
+
         media_state = STATE_IDLE;
         main_clock = 0;
         last_main_clock = 0;
@@ -28,29 +30,9 @@ public:
         pthread_mutex_init(&audio_packet_mutex_lock, nullptr);
         pthread_cond_init(&audio_packet_cond_lock, nullptr);
     }
-    ~AudioController() {
-        delete p_audio_msg_queue;
-        p_audio_msg_queue = nullptr;
-        delete p_msg_queue;
-        p_msg_queue = nullptr;
+    ~AudioController() {}
 
-        pthread_mutex_lock(&audio_packet_mutex_lock);
-        if (p_audio_packet_queue != nullptr)
-            delete p_audio_packet_queue;
-        p_audio_packet_queue = nullptr;
-        pthread_mutex_unlock(&audio_packet_mutex_lock);
-
-        pthread_mutex_destroy(&main_evt_mutex_lock);
-        pthread_cond_destroy(&main_evt_cond_lock);
-        pthread_mutex_destroy(&audio_evt_mutex_lock);
-        pthread_cond_destroy(&audio_evt_cond_lock);
-        pthread_mutex_destroy(&audio_packet_mutex_lock);
-        pthread_cond_destroy(&audio_packet_cond_lock);
-    }
-    static jobject findListener(jlong pointer);
-    static jobject removeListener(jlong pointer);
     static bool registerSelf(JNIEnv *env);
-    static bool threadAttachJvm(JavaVM* ptrJavaVm,JNIEnv** ppEnv);
     void dealAudioLoop(JNIEnv* env);
     void dealAudioBufferQueueCallback();
     void dealMainEvtLoop(JNIEnv* env);

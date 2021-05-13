@@ -13,20 +13,25 @@ extern "C" {
 
 class FFMpegCore {
 public:
-    int audio_index;
+    const static int MODE_AUDIO = 0x01;
+    const static int MODE_VIDEO = 0x02;
+
+    int audio_index, video_index;
     char* src_path;
-    AVFormatContext* p_fmt_ctx;
     float seek_dst;
+
+    AVFormatContext* p_fmt_ctx;
 
     FFMpegCore() {
         audio_index = -1;
+        video_index = -1;
         src_path = nullptr;
         p_fmt_ctx = nullptr;
     };
     ~FFMpegCore() {
         release();
     }
-    bool createEnv();
+    bool createEnv(int mode);
     void setPath(char* path);
     void release();
 private:

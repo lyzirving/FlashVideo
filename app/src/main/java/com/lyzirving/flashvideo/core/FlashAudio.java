@@ -8,7 +8,7 @@ import com.lyzirving.flashvideo.util.LogUtil;
  * @author lyzirving
  */
 public class FlashAudio {
-    private static final String TAG = "FlashVideo";
+    private static final String TAG = "FlashAudio";
     private static final int INVALID_POINTER = -1;
 
     private long mNativePtr = INVALID_POINTER;
@@ -115,10 +115,10 @@ public class FlashAudio {
     private native static void nativeSetPath(long ptr, String path);
     private native static void nativePlay(long ptr);
     private native static void nativePause(long ptr);
-    private native static void nativeSetPitch(long ptr, double pitch);
-    private native static void nativeSetTempo(long ptr, double tempo);
     private native static void nativeSeek(long ptr, float seekDst);
     private native static void nativeStop(long ptr);
     private native static void nativeSetListener(long ptr, VideoListenerAdapter listener);
+    private native static void nativeSetPitch(long ptr, double pitch);
+    private native static void nativeSetTempo(long ptr, double tempo);
     private native static void nativeSetVolume(long ptr, int value);
 }

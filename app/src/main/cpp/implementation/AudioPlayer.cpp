@@ -55,6 +55,7 @@ bool AudioPlayer::enqueueAudio(AudioData *data) {
 }
 
 void AudioPlayer::release() {
+    LogUtil::logD(TAG, {"release"});
     if (p_audio_decoder != nullptr) {
         delete p_audio_decoder;
         p_audio_decoder = nullptr;

@@ -15,6 +15,9 @@ JNIEXPORT int JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
     if (!AudioController::registerSelf(env)) {
         return JNI_ERR;
     }
+    if (!VideoController::registerSelf(env)) {
+        return JNI_ERR;
+    }
 
     return JNI_VERSION_1_6;
 }

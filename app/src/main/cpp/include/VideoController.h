@@ -8,17 +8,26 @@
 #include "JavaCallbackUtil.h"
 #include "FFMpegCore.h"
 #include "AudioPlayer.h"
+#include "VideoDecoder.h"
+
+#define TEN_SEC 10
+#define FIVE_HUNDRED_MILL_SEC 0.5
+#define FORTY_MILL_SEC 0.04
+#define THREE_MILL_SEC 0.003
+#define ONE_MIC0_SEC 1000000
 
 class VideoController {
+
 public:
     VideoController() {
-        p_ffmpeg = nullptr;
+        p_ffmpeg_core = nullptr;
         p_audio = nullptr;
-
+        p_video_decoder = nullptr;
         media_state = STATE_IDLE;
 
         p_video_packet_queue = new std::queue<AVPacket>();
         p_audio_packet_queue = new std::queue<AVPacket>();
+
         p_main_evt_queue = new std::queue<Msg>();
         p_audio_evt_queue = new std::queue<Msg>();
         p_video_evt_queue = new std::queue<Msg>();
@@ -35,46 +44,24 @@ public:
         pthread_cond_init(&video_packet_cond_lock, nullptr);
     }
 
-    ~VideoController() {
-        pthread_mutex_lock(&audio_packet_mutex_lock);
-        if (p_audio_packet_queue != nullptr)
-            delete p_audio_packet_queue;
-        p_audio_packet_queue = nullptr;
-        pthread_mutex_unlock(&audio_packet_mutex_lock);
+    ~VideoController() {}
 
-        pthread_mutex_lock(&video_packet_mutex_lock);
-        if (p_video_packet_queue != nullptr)
-            delete p_video_packet_queue;
-        p_video_packet_queue = nullptr;
-        pthread_mutex_unlock(&video_packet_mutex_lock);
-
-        delete p_main_evt_queue;
-        delete p_audio_evt_queue;
-        delete p_video_evt_queue;
-
-        pthread_mutex_destroy(&main_evt_mutex_lock);
-        pthread_cond_destroy(&main_evt_cond_lock);
-        pthread_mutex_destroy(&audio_evt_mutex_lock);
-        pthread_cond_destroy(&audio_evt_cond_lock);
-        pthread_mutex_destroy(&audio_packet_mutex_lock);
-        pthread_cond_destroy(&audio_packet_cond_lock);
-        pthread_mutex_destroy(&video_evt_mutex_lock);
-        pthread_cond_destroy(&video_evt_cond_lock);
-        pthread_mutex_destroy(&video_packet_mutex_lock);
-        pthread_cond_destroy(&video_packet_cond_lock);
-
-        if (p_ffmpeg != nullptr) {
-            delete p_ffmpeg;
-            p_ffmpeg = nullptr;
-        }
-        if (p_audio != nullptr) {
-            delete p_audio;
-            p_audio = nullptr;
-        }
-    }
+    static bool registerSelf(JNIEnv *env);
+    void dealAudioBufferQueueCallback();
+    void dealAudioEvtLoop(JNIEnv* env);
+    void dealVideoEvtLoop(JNIEnv* env);
+    void dealMainEvtLoop(JNIEnv* env);
+    void dealPacketCollector();
+    double getSleepTime(double time_diff);
+    void handlePlay();
+    void handlePause();
+    void handleStop();
+    bool init();
+    void setPath(char* path);
 
 private:
-    double main_clock, last_main_clock;
+    double main_clock, last_main_clock, video_clock;
+    double delay_time;
     MediaState media_state;
     std::queue<Msg>* p_main_evt_queue;
     std::queue<Msg>* p_audio_evt_queue;
@@ -83,8 +70,9 @@ private:
     std::queue<AVPacket>* p_audio_packet_queue;
     std::queue<AVPacket>* p_video_packet_queue;
 
-    FFMpegCore* p_ffmpeg;
+    FFMpegCore* p_ffmpeg_core;
     AudioPlayer* p_audio;
+    VideoDecoder* p_video_decoder;
 
     pthread_mutex_t main_evt_mutex_lock;
     pthread_cond_t main_evt_cond_lock;

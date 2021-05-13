@@ -4,6 +4,7 @@ package com.lyzirving.flashvideo.core;
  * @author lyzirving
  */
 public interface IVideoListener {
+    void onFrame(int width, int height, byte[] yData, byte[] uData, byte[] vData);
     /**
      * called when media source is prepared
      * @param duration the total time of playback
