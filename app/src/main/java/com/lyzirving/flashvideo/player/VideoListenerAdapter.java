@@ -1,4 +1,4 @@
-package com.lyzirving.flashvideo.core;
+package com.lyzirving.flashvideo.player;
 
 /**
  * @author lyzirving
@@ -10,7 +10,7 @@ public class VideoListenerAdapter implements IVideoListener {
     }
 
     @Override
-    public void onPrepare(double duration) {
+    public void onPrepare(double duration, int width, int height) {
         //put your own implementation here
     }
 

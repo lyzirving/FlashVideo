@@ -41,6 +41,10 @@ AudioData* AudioPlayer::decodePacket(AVPacket *in_ptr_packet) {
 }
 
 bool AudioPlayer::enqueueAudio(AudioData *data) {
+    return p_audio_engine->enqueueAudio(data->buf_size, data->data);
+}
+
+bool AudioPlayer::enqueueAudioWithSoundTouch(AudioData *data) {
     for (int i = 0; i < data->buf_size / 2 + 1; ++i) {
         p_st_buf[i] = (data->data[2 * i] | ((data->data[2 * i + 1]) << 8));
     }

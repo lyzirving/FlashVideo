@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.lyzirving.flashvideo.ui.MusicActivity;
+import com.lyzirving.flashvideo.ui.VideoActivity;
 import com.lyzirving.flashvideo.util.LogUtil;
 
 /**
@@ -26,7 +27,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "MainActivity";
     private static final int CODE_REQUEST_READ_WRITE_PERMISSION = 0x01;
 
-    private Button mBtnStartMusic;
+    private Button mBtnStartMusic, mBtnStartVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +67,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(MusicActivity.class);
                 break;
             }
+            case R.id.btn_start_video: {
+                startActivity(VideoActivity.class);
+                break;
+            }
             default: {
                 break;
             }
@@ -74,12 +79,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void enableButtons(boolean enable) {
         mBtnStartMusic.setEnabled(enable);
+        mBtnStartVideo.setEnabled(enable);
     }
 
     private void initView() {
         mBtnStartMusic = findViewById(R.id.btn_start_music);
+        mBtnStartVideo = findViewById(R.id.btn_start_video);
 
         mBtnStartMusic.setOnClickListener(this);
+        mBtnStartVideo.setOnClickListener(this);
     }
 
     private void requestUserPermission() {

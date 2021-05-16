@@ -34,7 +34,7 @@ public:
 
     static bool registerSelf(JNIEnv *env);
     void dealAudioLoop(JNIEnv* env);
-    void dealAudioBufferQueueCallback();
+    void dealAudioBufferQueueCallbackWithSoundTouch();
     void dealMainEvtLoop(JNIEnv* env);
     void dealPacketCollector();
     bool init();

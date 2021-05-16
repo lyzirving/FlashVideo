@@ -1,4 +1,4 @@
-package com.lyzirving.flashvideo.core;
+package com.lyzirving.flashvideo.player;
 
 import android.text.TextUtils;
 

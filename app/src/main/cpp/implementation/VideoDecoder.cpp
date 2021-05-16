@@ -18,7 +18,7 @@ void VideoDecoder::decodePacket(AVPacket *p_packet, DataYUV420* p_data) {
             p_data->width = p_codec_ctx->width;
             p_data->height = p_codec_ctx->height;
             if (p_raw_frame->format == AV_PIX_FMT_YUV420P) {
-                p_data->pts = av_frame_get_best_effort_timestamp(p_raw_frame);
+                p_data->pts = p_raw_frame->pts;
                 p_data->y_data = p_raw_frame->data[0];
                 p_data->u_data = p_raw_frame->data[1];
                 p_data->v_data = p_raw_frame->data[2];
@@ -32,19 +32,13 @@ void VideoDecoder::decodePacket(AVPacket *p_packet, DataYUV420* p_data) {
                           p_yuv_420_frame->data,// dst planes
                           p_yuv_420_frame->linesize// dst strides
                 );
-                p_data->pts = av_frame_get_best_effort_timestamp(p_yuv_420_frame);
+                p_data->pts = p_yuv_420_frame->pts;
                 p_data->y_data = p_yuv_420_frame->data[0];
                 p_data->u_data = p_yuv_420_frame->data[1];
                 p_data->v_data = p_yuv_420_frame->data[2];
             }
         }
     }
-}
-
-double VideoDecoder::getFramePresentationTime(double pts) {
-    if(pts == AV_NOPTS_VALUE)
-        pts = 0;
-    return pts * av_q2d(p_codec_ctx->time_base);
 }
 
 bool VideoDecoder::init(AVFormatContext *p_input_fmt_ctx, int input_video_index) {
@@ -69,6 +63,7 @@ bool VideoDecoder::init(AVFormatContext *p_input_fmt_ctx, int input_video_index)
     duration = p_fmt_ctx->duration * av_q2d(AV_TIME_BASE_Q);
     frame_count = p_fmt_ctx->streams[video_index]->nb_frames;
     frame_rate = frame_count / duration;
+
     if (frame_rate <= 0)
         frame_rate = DEFAULT_FRAME_RATE;
 

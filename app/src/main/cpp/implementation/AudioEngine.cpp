@@ -104,8 +104,10 @@ bool AudioEngine::createBufQueuePlayer() {
     return false;
 }
 
-void AudioEngine::enqueueAudio(int length, unsigned char* data) {
-    (*p_buf_queue_itf)->Enqueue(p_buf_queue_itf, data, length);
+bool AudioEngine::enqueueAudio(int length, unsigned char* data) {
+    SLresult res = (*p_buf_queue_itf)->Enqueue(p_buf_queue_itf, data, length);
+    LogUtil::logD(TAG, {"enqueueAudio: " + std::to_string(res)});
+    return res == SL_RESULT_SUCCESS;
 }
 
 bool AudioEngine::init(SLuint32 in_sample_rate, SLuint32 in_sample_fmt, SLuint32 in_channel_count) {

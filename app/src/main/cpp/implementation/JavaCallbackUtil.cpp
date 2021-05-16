@@ -3,10 +3,10 @@
 
 #define TAG "JavaCallbackUtil"
 
-void JavaCallbackUtil::callMediaPrepare(JNIEnv* env, jobject listener, double duration) {
+void JavaCallbackUtil::callMediaPrepare(JNIEnv* env, jobject listener, double duration, int width, int height) {
     jclass listener_class = env->GetObjectClass(listener);
-    jmethodID method_id = env->GetMethodID(listener_class, "onPrepare", "(D)V");
-    env->CallVoidMethod(listener, method_id, duration);
+    jmethodID method_id = env->GetMethodID(listener_class, "onPrepare", "(DII)V");
+    env->CallVoidMethod(listener, method_id, duration, width, height);
 }
 
 void JavaCallbackUtil::callMediaStop(JNIEnv *env, jobject listener) {
@@ -26,9 +26,9 @@ void JavaCallbackUtil::callVideoFrame(JNIEnv *env, jobject listener, int width, 
     jbyteArray y = env->NewByteArray(width * height);
     env->SetByteArrayRegion(y, 0, width * height, reinterpret_cast<const jbyte *>(y_data));
     jbyteArray u = env->NewByteArray(width * height / 4);
-    env->SetByteArrayRegion(y, 0, width * height / 4, reinterpret_cast<const jbyte *>(u_data));
+    env->SetByteArrayRegion(u, 0, width * height / 4, reinterpret_cast<const jbyte *>(u_data));
     jbyteArray v = env->NewByteArray(width * height / 4);
-    env->SetByteArrayRegion(y, 0, width * height / 4, reinterpret_cast<const jbyte *>(v_data));
+    env->SetByteArrayRegion(v, 0, width * height / 4, reinterpret_cast<const jbyte *>(v_data));
 
     jclass listener_class = env->GetObjectClass(listener);
     jmethodID method_id = env->GetMethodID(listener_class, "onFrame", "(II[B[B[B)V");

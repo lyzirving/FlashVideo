@@ -28,10 +28,11 @@ struct VideoData {
 };
 
 struct DataYUV420 {
-    double pts;
+    long pts;
     unsigned char* y_data;
     unsigned char* u_data;
     unsigned char* v_data;
+    unsigned char* line_size;
     int width;
     int height;
 };

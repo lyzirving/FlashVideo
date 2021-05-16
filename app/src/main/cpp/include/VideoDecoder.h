@@ -9,7 +9,6 @@ extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libswscale/swscale.h"
 #include "libavutil/imgutils.h"
-#include "libavutil/time.h"
 #include "libswresample/swresample.h"
 }
 #endif
@@ -45,7 +44,6 @@ public:
     }
 
     void decodePacket(AVPacket *p_packet, DataYUV420* p_data);
-    double getFramePresentationTime(double pts);
     bool init(AVFormatContext* p_input_fmt_ctx, int input_video_index);
     void release();
 private:

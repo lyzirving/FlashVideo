@@ -4,7 +4,7 @@
 #include <map>
 
 #define TAG "AudioController"
-#define CLASS "com/lyzirving/flashvideo/core/FlashAudio"
+#define CLASS "com/lyzirving/flashvideo/player/FlashAudio"
 
 static JavaVM* p_global_jvm = nullptr;
 static std::map<jlong, jobject> global_listeners;
@@ -105,7 +105,7 @@ static JNINativeMethod jniMethods[] = {
         },
         {
                 "nativeSetListener",
-                "(JLcom/lyzirving/flashvideo/core/VideoListenerAdapter;)V",
+                "(JLcom/lyzirving/flashvideo/player/VideoListenerAdapter;)V",
                 (void *) nSetListener
         },
         {
@@ -137,7 +137,7 @@ void audioBufQueueCallback(SLAndroidSimpleBufferQueueItf buf_queue_itf, void *ar
     }
     auto* p_control = (AudioController*)args;
     if (p_control != nullptr)
-        p_control->dealAudioBufferQueueCallback();
+        p_control->dealAudioBufferQueueCallbackWithSoundTouch();
     if (audio_thread_env != nullptr) {
         p_global_jvm->DetachCurrentThread();
         audio_thread_env = nullptr;
@@ -192,7 +192,7 @@ void AudioController::dealAudioLoop(JNIEnv* env) {
                         if(tmp_audio_data->now_time < main_clock) tmp_audio_data->now_time = main_clock;
                         main_clock = tmp_audio_data->now_time;
                         last_main_clock = main_clock;
-                        finish = p_audio->enqueueAudio(tmp_audio_data);
+                        finish = p_audio->enqueueAudioWithSoundTouch(tmp_audio_data);
                     }
                     av_packet_unref(&audio_packet);
                     p_audio_packet_queue->pop();
@@ -230,13 +230,13 @@ void AudioController::dealAudioLoop(JNIEnv* env) {
     pthread_cond_destroy(&audio_packet_cond_lock);
 }
 
-void AudioController::dealAudioBufferQueueCallback() {
+void AudioController::dealAudioBufferQueueCallbackWithSoundTouch() {
     bool finish = false;
     while(!finish && media_state == STATE_PLAY) {
         //make it safe in concurrent env
         pthread_mutex_lock(&audio_packet_mutex_lock);
         if (p_audio_packet_queue == nullptr) {
-            LogUtil::logD(TAG, {"dealAudioBufferQueueCallback: audio packet is null"});
+            LogUtil::logD(TAG, {"dealAudioBufferQueueCallbackWithSoundTouch: audio packet is null"});
             pthread_mutex_unlock(&audio_packet_mutex_lock);
             break;
         }
@@ -245,7 +245,7 @@ void AudioController::dealAudioBufferQueueCallback() {
         }
         //make it safe in concurrent env
         if (media_state != STATE_PLAY || p_audio_packet_queue == nullptr || p_audio == nullptr) {
-            LogUtil::logD(TAG, {"dealAudioBufferQueueCallback: invalid state"});
+            LogUtil::logD(TAG, {"dealAudioBufferQueueCallbackWithSoundTouch: invalid state"});
             pthread_mutex_unlock(&audio_packet_mutex_lock);
             break;
         }
@@ -261,7 +261,7 @@ void AudioController::dealAudioBufferQueueCallback() {
                     && audio_thread_env != nullptr)
                     JavaCallbackUtil::callMediaTickTime(audio_thread_env, listener, main_clock);
             }
-            finish = p_audio->enqueueAudio(audio_data);
+            finish = p_audio->enqueueAudioWithSoundTouch(audio_data);
         }
         av_packet_unref(&audio_packet);
         p_audio_packet_queue->pop();
@@ -285,7 +285,7 @@ void AudioController::dealMainEvtLoop(JNIEnv* env) {
     p_audio->initSoundTouch();
     media_state = STATE_INITIALIZED;
     listener = JavaCallbackUtil::findListener(&global_listeners, reinterpret_cast<jlong>(this));
-    if (listener != nullptr) JavaCallbackUtil::callMediaPrepare(env, listener, p_audio->p_audio_decoder->media_time);
+    if (listener != nullptr) JavaCallbackUtil::callMediaPrepare(env, listener, p_audio->p_audio_decoder->media_time, 0, 0);
     pthread_create(&audio_thread, nullptr, audioLooper, this);
     pthread_setname_np(audio_thread, "audio-event-thread");
     pthread_mutex_lock(&main_evt_mutex_lock);

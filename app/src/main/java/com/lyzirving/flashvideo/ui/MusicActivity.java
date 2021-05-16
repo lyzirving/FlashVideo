@@ -11,8 +11,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.lyzirving.flashvideo.R;
-import com.lyzirving.flashvideo.core.FlashAudio;
-import com.lyzirving.flashvideo.core.VideoListenerAdapter;
+import com.lyzirving.flashvideo.player.FlashAudio;
+import com.lyzirving.flashvideo.player.VideoListenerAdapter;
 import com.lyzirving.flashvideo.util.LogUtil;
 import com.lyzirving.flashvideo.util.TimeUtil;
 
@@ -74,7 +74,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout_music);
+        setContentView(R.layout.layout_music_player);
         initView();
     }
 
@@ -230,8 +230,8 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
         if (mListener == null) {
             mListener = new VideoListenerAdapter() {
                 @Override
-                public void onPrepare(double duration) {
-                    super.onPrepare(duration);
+                public void onPrepare(double duration, int width, int height) {
+                    super.onPrepare(duration, width, height);
                     mHandler.obtainMessage(MSG_PREPARE, duration).sendToTarget();
                 }
 

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.lyzirving.flashvideo.opengl.GLVideoView
+        android:id="@+id/view_video"
+        android:layout_width="match_parent"
+        android:layout_height="500dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_init"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view_video"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_init"
+        android:textSize="18sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@+id/btn_init"
+        app:layout_constraintTop_toTopOf="@+id/btn_init"
+        android:layout_marginStart="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_play"
+        android:textSize="18sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@+id/btn_play"
+        app:layout_constraintTop_toTopOf="@+id/btn_play"
+        android:layout_marginStart="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_pause"
+        android:textSize="18sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@+id/btn_pause"
+        app:layout_constraintTop_toTopOf="@+id/btn_pause"
+        android:layout_marginStart="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_stop"
+        android:textSize="18sp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

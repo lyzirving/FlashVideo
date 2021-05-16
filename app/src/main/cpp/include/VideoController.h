@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <queue>
+#include <unistd.h>
 
 #include "Common.h"
 #include "JavaCallbackUtil.h"
@@ -25,6 +26,11 @@ public:
         p_video_decoder = nullptr;
         media_state = STATE_IDLE;
 
+        video_clock = 0;
+        main_clock = 0;
+        last_main_clock = 0;
+        last_video_pts = 0;
+
         p_video_packet_queue = new std::queue<AVPacket>();
         p_audio_packet_queue = new std::queue<AVPacket>();
 
@@ -38,6 +44,7 @@ public:
         pthread_cond_init(&audio_evt_cond_lock, nullptr);
         pthread_mutex_init(&audio_packet_mutex_lock, nullptr);
         pthread_cond_init(&audio_packet_cond_lock, nullptr);
+        pthread_mutex_init(&audio_buffer_queue_mutex_lock, nullptr);
         pthread_mutex_init(&video_evt_mutex_lock, nullptr);
         pthread_cond_init(&video_evt_cond_lock, nullptr);
         pthread_mutex_init(&video_packet_mutex_lock, nullptr);
@@ -47,6 +54,23 @@ public:
     ~VideoController() {}
 
     static bool registerSelf(JNIEnv *env);
+    void audioEventEnqueue(MediaMsg in_msg_type);
+    Msg audioEventDequeue();
+    void audioEventQueueDelete();
+    void mainEventEnqueue(MediaMsg in_msg_type);
+    Msg mainEventDequeue();
+    void mainEventQueueDelete();
+    void videoEventEnqueue(MediaMsg in_msg_type);
+    Msg videoEventDequeue();
+    void videoEventQueueDelete();
+    void audioPacketClear();
+    AVPacket audioPacketDequeue();
+    void audioPacketDelete();
+    void audioPacketEnqueue(AVPacket* packet);
+    void videoPacketClear();
+    AVPacket videoPacketDequeue();
+    void videoPacketDelete();
+    void videoPacketEnqueue(AVPacket* packet);
     void dealAudioBufferQueueCallback();
     void dealAudioEvtLoop(JNIEnv* env);
     void dealVideoEvtLoop(JNIEnv* env);
@@ -57,11 +81,14 @@ public:
     void handlePause();
     void handleStop();
     bool init();
+    bool playAudio();
     void setPath(char* path);
+    void updateVideoClock(long in_pts);
 
 private:
     double main_clock, last_main_clock, video_clock;
     double delay_time;
+    long last_video_pts;
     MediaState media_state;
     std::queue<Msg>* p_main_evt_queue;
     std::queue<Msg>* p_audio_evt_queue;
@@ -81,6 +108,8 @@ private:
     pthread_cond_t audio_evt_cond_lock;
     pthread_mutex_t audio_packet_mutex_lock;
     pthread_cond_t audio_packet_cond_lock;
+
+    pthread_mutex_t audio_buffer_queue_mutex_lock;
 
     pthread_mutex_t video_evt_mutex_lock;
     pthread_cond_t video_evt_cond_lock;
