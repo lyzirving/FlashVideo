@@ -163,19 +163,25 @@ void AudioEngine::setBufferQueueCallback(slAndroidSimpleBufferQueueCallback ref,
 }
 
 void AudioEngine::setPlayState() {
-    if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_PLAYING) != SL_RESULT_SUCCESS) {
+    if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_PLAYING) == SL_RESULT_SUCCESS) {
+        LogUtil::logD(TAG, {"setPlayState"});
+    } else {
         LogUtil::logE(TAG, {"setPlayState: failed"});
     }
 }
 
 void AudioEngine::setPauseState() {
-    if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_PAUSED) != SL_RESULT_SUCCESS) {
+    if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_PAUSED) == SL_RESULT_SUCCESS) {
+        LogUtil::logD(TAG, {"setPauseState"});
+    } else {
         LogUtil::logE(TAG, {"setPauseState: failed"});
     }
 }
 
 void AudioEngine::setStopState() {
-    if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_STOPPED) != SL_RESULT_SUCCESS) {
+    if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_STOPPED) == SL_RESULT_SUCCESS) {
+        LogUtil::logD(TAG, {"setStopState"});
+    } else {
         LogUtil::logE(TAG, {"setStopState: failed"});
     }
 }

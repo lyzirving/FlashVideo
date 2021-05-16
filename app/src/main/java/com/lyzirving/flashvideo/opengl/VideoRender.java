@@ -34,6 +34,7 @@ public class VideoRender implements GLSurfaceView.Renderer, IPlayer {
     private FlashVideo mVideo;
     private YuvVideoFilter mVideoBgFilter;
     private VideoListenerAdapter mVideoListener;
+    private GLVideoView.GLVideoViewListener mVideoViewListener;
 
     public VideoRender(GLSurfaceView view) {
         mView = view;
@@ -45,16 +46,16 @@ public class VideoRender implements GLSurfaceView.Renderer, IPlayer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        LogUtil.d("test", "onSurfaceCreated");
+        LogUtil.d(TAG, "onSurfaceCreated");
         GLES20.glClearColor(1f,1f,1f, 1f);
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        LogUtil.d("test", "onSurfaceCreated: width = " + width + ", height = " + height);
+        LogUtil.d(TAG, "onSurfaceCreated: width = " + width + ", height = " + height);
         boolean viewChanged = ((mViewWidth != width) || (mViewHeight != height));
         if (viewChanged) {
-            LogUtil.d("test", "onSurfaceChanged: view is changed");
+            LogUtil.d(TAG, "onSurfaceChanged: view is changed");
             mViewWidth = width;
             mViewHeight = height;
             GLES20.glViewport(0, 0, width, height);
@@ -71,10 +72,10 @@ public class VideoRender implements GLSurfaceView.Renderer, IPlayer {
     @Override
     public void prepare() {
         if (mVideo == null) {
-            LogUtil.e(TAG, "prepare: video is null");
-        } else {
-            mVideo.prepare();
+            mVideo = new FlashVideo();
+            mVideo.setListener(getVideoListener());
         }
+        mVideo.prepare();
     }
 
     @Override
@@ -107,10 +108,14 @@ public class VideoRender implements GLSurfaceView.Renderer, IPlayer {
     @Override
     public void setDataSource(String source) {
         if (mVideo == null) {
-            LogUtil.e(TAG, "setDataSource: video is null");
-        } else {
-            mVideo.setDataSource(source);
+            mVideo = new FlashVideo();
+            mVideo.setListener(getVideoListener());
         }
+        mVideo.setDataSource(source);
+    }
+
+    public void setVideoViewListener(GLVideoView.GLVideoViewListener listener) {
+        mVideoViewListener = listener;
     }
 
     private void addPreDrawTask(final Runnable runnable) {
@@ -137,34 +142,43 @@ public class VideoRender implements GLSurfaceView.Renderer, IPlayer {
                 public void onFrame(int width, int height, byte[] yData, byte[] uData, byte[] vData) {
                     super.onFrame(width, height, yData, uData, vData);
                     if (!mIsRendering) {
-                        LogUtil.d("test", "onFrame");
                         mChannelY = ByteBuffer.wrap(yData);
                         mChannelU = ByteBuffer.wrap(uData);
                         mChannelV = ByteBuffer.wrap(vData);
                         mView.requestRender();
                     } else {
-                        LogUtil.d("test", "onFrame: video is rendering, skip");
+                        LogUtil.d(TAG, "onFrame: video is rendering, skip");
                     }
                 }
 
                 @Override
                 public void onPrepare(double duration, int width, int height) {
                     super.onPrepare(duration, width, height);
-                    LogUtil.d("test", "onPrepare: duration = " + duration + ", width = " + width + ", height = " + height);
+                    LogUtil.d(TAG, "onPrepare: duration = " + duration + ", width = " + width + ", height = " + height);
                     mVideoWidth = width;
                     mVideoHeight = height;
                     createVideoFilter(width, height);
+                    if (mVideoViewListener != null) {
+                        mVideoViewListener.onPrepare(duration);
+                    }
                 }
 
                 @Override
                 public void onStop() {
                     super.onStop();
-                    LogUtil.d("test", "onStop");
+                    LogUtil.d(TAG, "onStop");
+                    mVideo = null;
+                    if (mVideoViewListener != null) {
+                        mVideoViewListener.onVideoStop();
+                    }
                 }
 
                 @Override
                 public void onTickTime(double currentTime) {
                     super.onTickTime(currentTime);
+                    if (mVideoViewListener != null) {
+                        mVideoViewListener.onVideoTickTime(currentTime);
+                    }
                 }
             };
         }

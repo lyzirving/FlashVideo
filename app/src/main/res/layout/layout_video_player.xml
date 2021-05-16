@@ -7,7 +7,7 @@
     <com.lyzirving.flashvideo.opengl.GLVideoView
         android:id="@+id/view_video"
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="400dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -33,7 +33,8 @@
         android:layout_marginStart="10dp"
         android:textAllCaps="false"
         android:text="@string/tip_play"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:enabled="false" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_pause"
@@ -44,7 +45,8 @@
         android:layout_marginStart="10dp"
         android:textAllCaps="false"
         android:text="@string/tip_pause"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:enabled="false" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_stop"
@@ -55,6 +57,37 @@
         android:layout_marginStart="10dp"
         android:textAllCaps="false"
         android:text="@string/tip_stop"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:enabled="false" />
+
+    <TextView
+        android:id="@+id/tv_current_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_init"
+        android:layout_marginTop="10dp"
+        android:textAllCaps="false"
+        android:text="@string/msg_default_time"
+        android:textSize="15sp"/>
+
+    <TextView
+        android:id="@+id/tv_total_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_current_time"
+        android:textAllCaps="false"
+        android:text="@string/msg_default_time"
+        android:textSize="15sp"/>
+
+    <SeekBar
+        android:id="@+id/video_progress_bar"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:max="100"
+        app:layout_constraintTop_toTopOf="@+id/tv_current_time"
+        app:layout_constraintLeft_toRightOf="@+id/tv_current_time"
+        app:layout_constraintRight_toLeftOf="@+id/tv_total_time"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

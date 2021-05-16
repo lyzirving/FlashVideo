@@ -41,7 +41,6 @@ public class YuvVideoFilter implements IFilter {
             initTextureCoordinate();
             initTexture();
             mIsInit = true;
-            LogUtil.d("test", "filter init");
         }
     }
 

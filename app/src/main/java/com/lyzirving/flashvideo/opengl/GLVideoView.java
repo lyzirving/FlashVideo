@@ -70,6 +70,10 @@ public class GLVideoView extends GLSurfaceView implements IPlayer {
         }
     }
 
+    public void setVideoViewListener(GLVideoViewListener listener) {
+        mRender.setVideoViewListener(listener);
+    }
+
     private void initEnv() {
         setEGLContextClientVersion(2);
         setEGLConfigChooser(8,8,8,8,16,0);
@@ -77,5 +81,13 @@ public class GLVideoView extends GLSurfaceView implements IPlayer {
         setRenderer(mRender);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
+    }
+
+    public interface GLVideoViewListener {
+        void onPrepare(double duration);
+        void onVideoPlay();
+        void onVideoPause();
+        void onVideoTickTime(double currentTime);
+        void onVideoStop();
     }
 }

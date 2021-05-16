@@ -403,9 +403,11 @@ void VideoController::dealVideoEvtLoop(JNIEnv *env) {
                         LogUtil::logD(TAG, {"dealVideoEvtLoop: video time: ", std::to_string(video_clock)});
                         video_sleep_time = getSleepTime(main_clock - video_clock);
                         usleep(video_sleep_time * ONE_MIC0_SEC);
-                        listener = JavaCallbackUtil::findListener(&global_listeners,reinterpret_cast<jlong>(this));
-                        JavaCallbackUtil::callVideoFrame(env, listener, p_yuv->width, p_yuv->height,
-                                p_yuv->y_data, p_yuv->u_data, p_yuv->v_data);
+                        if ((listener = JavaCallbackUtil::findListener(
+                                &global_listeners,reinterpret_cast<jlong>(this))) != nullptr) {
+                            JavaCallbackUtil::callVideoFrame(env, listener, p_yuv->width, p_yuv->height,
+                                                             p_yuv->y_data, p_yuv->u_data, p_yuv->v_data);
+                        }
                     }
                     av_packet_unref(&video_packet);
                 }
