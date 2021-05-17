@@ -504,8 +504,10 @@ void AudioController::seekToDst(float dst_ratio) {
                        p_ffmpeg_core->p_fmt_ctx->duration * target, INT64_MAX, 0);
     last_main_clock = main_clock = 0;
     p_ffmpeg_core->seek_dst = -1;
-    if (p_audio != nullptr)
+    if (p_audio != nullptr) {
         avcodec_flush_buffers(p_audio->p_audio_decoder->p_audio_codec_ctx);
+        p_audio->clearBufferQueue();
+    }
 }
 
 bool AudioController::registerSelf(JNIEnv *env) {

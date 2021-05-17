@@ -37,6 +37,7 @@ public:
     };
 
     bool init(SLuint32 in_sample_rate, SLuint32 in_sample_fmt, SLuint32 in_channel_count);
+    void clearBufferQueue();
     bool createBufQueuePlayer();
     bool enqueueAudio(int length, unsigned char* data);
     void setBufferQueueCallback(slAndroidSimpleBufferQueueCallback ref, void* in_call_obj);

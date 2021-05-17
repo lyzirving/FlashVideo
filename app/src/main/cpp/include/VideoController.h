@@ -11,8 +11,8 @@
 #include "AudioPlayer.h"
 #include "VideoDecoder.h"
 
-#define TEN_SEC 10
-#define FIVE_HUNDRED_MILL_SEC 0.5
+#define FIVE_SEC 5
+#define THREE_HUNDRED_MILL_SEC 0.3
 #define FORTY_MILL_SEC 0.04
 #define THREE_MILL_SEC 0.003
 #define ONE_MIC0_SEC 1000000
@@ -44,7 +44,6 @@ public:
         pthread_cond_init(&audio_evt_cond_lock, nullptr);
         pthread_mutex_init(&audio_packet_mutex_lock, nullptr);
         pthread_cond_init(&audio_packet_cond_lock, nullptr);
-        pthread_mutex_init(&audio_buffer_queue_mutex_lock, nullptr);
         pthread_mutex_init(&video_evt_mutex_lock, nullptr);
         pthread_cond_init(&video_evt_cond_lock, nullptr);
         pthread_mutex_init(&video_packet_mutex_lock, nullptr);
@@ -58,17 +57,16 @@ public:
     Msg audioEventDequeue();
     void audioEventQueueDelete();
     void mainEventEnqueue(MediaMsg in_msg_type);
+    void mainEventEnqueue(MediaMsg in_msg_type, float input_val);
     Msg mainEventDequeue();
     void mainEventQueueDelete();
     void videoEventEnqueue(MediaMsg in_msg_type);
     Msg videoEventDequeue();
     void videoEventQueueDelete();
     void audioPacketClear();
-    AVPacket audioPacketDequeue();
     void audioPacketDelete();
     void audioPacketEnqueue(AVPacket* packet);
     void videoPacketClear();
-    AVPacket videoPacketDequeue();
     void videoPacketDelete();
     void videoPacketEnqueue(AVPacket* packet);
     void dealAudioBufferQueueCallback();
@@ -80,6 +78,7 @@ public:
     void handlePlay();
     void handlePause();
     void handleStop();
+    void handleSeek(float seek);
     bool init();
     bool playAudio();
     void setPath(char* path);
@@ -108,8 +107,6 @@ private:
     pthread_cond_t audio_evt_cond_lock;
     pthread_mutex_t audio_packet_mutex_lock;
     pthread_cond_t audio_packet_cond_lock;
-
-    pthread_mutex_t audio_buffer_queue_mutex_lock;
 
     pthread_mutex_t video_evt_mutex_lock;
     pthread_cond_t video_evt_cond_lock;

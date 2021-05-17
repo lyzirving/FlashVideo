@@ -33,6 +33,7 @@ public:
     }
     bool createEnv(int mode);
     void setPath(char* path);
+    void seekTo(float dst);
     void release();
 private:
 };

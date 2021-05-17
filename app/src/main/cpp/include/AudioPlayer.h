@@ -24,6 +24,7 @@ public:
     };
 
     bool createBufQueuePlayer(slAndroidSimpleBufferQueueCallback ref, void* in_call_obj);
+    void clearBufferQueue();
     AudioData* decodePacket(AVPacket* in_ptr_packet);
     bool enqueueAudio(AudioData* data);
     bool enqueueAudioWithSoundTouch(AudioData* data);

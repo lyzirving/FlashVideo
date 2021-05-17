@@ -10,6 +10,7 @@ enum MediaMsg{
 };
 struct Msg {
     MediaMsg what;
+    float val_float;
 };
 enum MediaState{
     STATE_IDLE = 1,

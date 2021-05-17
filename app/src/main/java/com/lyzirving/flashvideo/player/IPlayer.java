@@ -29,4 +29,10 @@ public interface IPlayer {
      * @param source path of media data
      */
     void setDataSource(String source);
+
+    /**
+     * called to seek the media to specific dst
+     * @param ratio value is ranged by [0, 1];
+     */
+    void seek(float ratio);
 }

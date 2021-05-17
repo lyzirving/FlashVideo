@@ -4,6 +4,8 @@
 
 #define TAG "AudioEngine"
 
+
+
 SLuint32 AudioEngine::getBitsPerSample(SLuint32 sampleFormat) {
     if (sampleFormat == 8) {
         return SL_PCMSAMPLEFORMAT_FIXED_8;
@@ -50,6 +52,11 @@ SLuint32 AudioEngine::getSamplesPerSec(SLuint32 sampleRate) {
         default:
             return SL_SAMPLINGRATE_44_1;
     }
+}
+
+void AudioEngine::clearBufferQueue() {
+    SLresult result = (*p_buf_queue_itf)->Clear(p_buf_queue_itf);
+    LogUtil::logD(TAG, {"clearBufferQueue: ", std::to_string(result)});
 }
 
 bool AudioEngine::createBufQueuePlayer() {
@@ -171,11 +178,19 @@ void AudioEngine::setPlayState() {
 }
 
 void AudioEngine::setPauseState() {
-    if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_PAUSED) == SL_RESULT_SUCCESS) {
-        LogUtil::logD(TAG, {"setPauseState"});
-    } else {
-        LogUtil::logE(TAG, {"setPauseState: failed"});
+    SLuint32 state;
+    if((*p_audio_player_itf)->GetPlayState(p_audio_player_itf, &state) == SL_RESULT_SUCCESS) {
+        if (state == SL_PLAYSTATE_PLAYING) {
+            if ((*p_audio_player_itf)->SetPlayState(p_audio_player_itf, SL_PLAYSTATE_PAUSED) == SL_RESULT_SUCCESS) {
+                LogUtil::logD(TAG, {"setPauseState"});
+            } else {
+                LogUtil::logE(TAG, {"setPauseState: failed"});
+            }
+        } else {
+            LogUtil::logD(TAG, {"setPauseState: not in play state"});
+        }
     }
+
 }
 
 void AudioEngine::setStopState() {
@@ -215,6 +230,7 @@ void AudioEngine::setVolume(int val) {
 }
 
 void AudioEngine::release() {
+    LogUtil::logD(TAG, {"release"});
     if (p_audio_player_obj != nullptr) {
         (*p_audio_player_obj)->Destroy(p_audio_player_obj);
         p_audio_player_obj = nullptr;

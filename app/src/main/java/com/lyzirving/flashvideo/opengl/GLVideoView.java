@@ -70,6 +70,11 @@ public class GLVideoView extends GLSurfaceView implements IPlayer {
         }
     }
 
+    @Override
+    public void seek(float ratio) {
+        mRender.seek(ratio);
+    }
+
     public void setVideoViewListener(GLVideoViewListener listener) {
         mRender.setVideoViewListener(listener);
     }

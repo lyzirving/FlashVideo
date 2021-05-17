@@ -114,6 +114,15 @@ public class VideoRender implements GLSurfaceView.Renderer, IPlayer {
         mVideo.setDataSource(source);
     }
 
+    @Override
+    public void seek(float ratio) {
+        if (mVideo == null) {
+            LogUtil.e(TAG, "seek: video is null");
+        } else {
+            mVideo.seek(ratio);
+        }
+    }
+
     public void setVideoViewListener(GLVideoView.GLVideoViewListener listener) {
         mVideoViewListener = listener;
     }

@@ -20,10 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-// TODO: 2021/5/16 (1) adjust the strategy to sync video time and music time
-// TODO: 2021/5/16 (2) function of seek 
-// TODO: 2021/5/16 (3) function of speeding the video
-// TODO: 2021/5/16 (4) use JNI to play the media in assets file 
+// TODO: 2021/5/16 (1) function of speeding the video
+// TODO: 2021/5/16 (2) use JNI to play the media in assets file
 /**
  * @author lyzirving
  */
@@ -135,7 +133,9 @@ public class VideoActivity extends AppCompatActivity implements View.OnClickList
     public void onStartTrackingTouch(SeekBar seekBar) {}
 
     @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {}
+    public void onStopTrackingTouch(SeekBar seekBar) {
+        mVideoView.seek(seekBar.getProgress() * 1f / 100);
+    }
 
     private void enableBtn(boolean enable) {
         mBtnPlay.setEnabled(enable);

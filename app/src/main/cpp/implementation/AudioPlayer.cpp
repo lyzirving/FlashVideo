@@ -4,6 +4,11 @@
 
 #define TAG "AudioPlayer"
 
+void AudioPlayer::clearBufferQueue() {
+    if (p_audio_engine != nullptr)
+        p_audio_engine->clearBufferQueue();
+}
+
 bool AudioPlayer::createBufQueuePlayer(slAndroidSimpleBufferQueueCallback ref, void *in_call_obj) {
     p_audio_engine->setBufferQueueCallback(ref, in_call_obj);
     return p_audio_engine->createBufQueuePlayer();

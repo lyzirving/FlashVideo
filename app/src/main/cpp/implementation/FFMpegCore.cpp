@@ -52,6 +52,15 @@ void FFMpegCore::setPath(char *path) {
     LogUtil::logD(TAG, {"setPath: ", src_path});
 }
 
+void FFMpegCore::seekTo(float dst) {
+    if (dst < 0)
+        dst = 0;
+    else if (dst > 1)
+        dst = 1;
+    avformat_seek_file(p_fmt_ctx, -1, INT64_MIN,
+                       p_fmt_ctx->duration * dst, INT64_MAX, 0);
+}
+
 void FFMpegCore::release() {
     LogUtil::logD(TAG, {"release"});
     if (p_fmt_ctx != nullptr) {

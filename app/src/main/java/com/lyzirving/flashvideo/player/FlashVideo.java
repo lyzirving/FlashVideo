@@ -69,6 +69,15 @@ public class FlashVideo implements IPlayer {
         }
     }
 
+    @Override
+    public void seek(float ratio) {
+        if (mNativePtr == INVALID_POINTER) {
+            LogUtil.e(TAG, "seek: pointer is invalid");
+        } else {
+            nativeSeek(mNativePtr, ratio);
+        }
+    }
+
     public void setListener(VideoListenerAdapter listener) {
         if (mNativePtr == INVALID_POINTER) {
             LogUtil.e(TAG, "setListener: pointer is invalid");
