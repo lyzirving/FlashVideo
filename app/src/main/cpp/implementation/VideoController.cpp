@@ -223,17 +223,9 @@ void VideoController::dealAudioEvtLoop(JNIEnv *env) {
     quit:
     LogUtil::logD(TAG, {"dealAudioEvtLoop: quit"});
     audioEventQueueDelete();
-
     if (p_audio != nullptr)
         delete p_audio;
     p_audio = nullptr;
-
-    pthread_mutex_destroy(&audio_evt_mutex_lock);
-    pthread_cond_destroy(&audio_evt_cond_lock);
-    pthread_mutex_destroy(&audio_packet_mutex_lock);
-    pthread_cond_destroy(&audio_packet_cond_lock);
-    LogUtil::logD(TAG, {"dealAudioEvtLoop: lock destroy"});
-
     videoEventEnqueue(MSG_STOP);
 }
 
@@ -259,10 +251,10 @@ void VideoController::dealAudioBufferQueueCallback() {
         }
         AVPacket audio_packet = p_audio_packet_queue->front();
         p_audio_packet_queue->pop();
-        LogUtil::logD(TAG, {"dealAudioBufferQueueCallback"});
         AudioData* audio_data = p_audio->decodePacket(&audio_packet);
         if (audio_data->buf_size > 0) {
             main_clock += audio_data->buf_size / ((double)(p_audio->p_audio_decoder->out_sample_rate * 2 * 2));
+            LogUtil::logD(TAG, {"dealAudioBufferQueueCallback: main time = ", std::to_string(main_clock)});
             //invoke the callback every second
             if (main_clock - last_main_clock > 1) {
                 last_main_clock = main_clock;
@@ -305,13 +297,8 @@ void VideoController::dealMainEvtLoop(JNIEnv *env) {
                 p_video_decoder->p_codec_ctx->width, p_video_decoder->p_codec_ctx->height);
 
     pthread_create(&audio_thread, nullptr, audioEvtLoop, this);
-    pthread_setname_np(audio_thread, "audio-event-thread");
-
     pthread_create(&video_thread, nullptr, videoEvtLoop, this);
-    pthread_setname_np(video_thread, "video-event-thread");
-
     LogUtil::logD(TAG, {"dealMainEvtLoop: tid = ", std::to_string((int)syscall(SYS_gettid))});
-
     while(true) {
         msg = mainEventDequeue();
         switch(msg.what) {
@@ -362,6 +349,14 @@ void VideoController::dealMainEvtLoop(JNIEnv *env) {
     }
     mainEventQueueDelete();
 
+    pthread_mutex_destroy(&audio_evt_mutex_lock);
+    pthread_cond_destroy(&audio_evt_cond_lock);
+    pthread_mutex_destroy(&audio_packet_mutex_lock);
+    pthread_cond_destroy(&audio_packet_cond_lock);
+    pthread_mutex_destroy(&video_evt_mutex_lock);
+    pthread_cond_destroy(&video_evt_cond_lock);
+    pthread_mutex_destroy(&video_packet_mutex_lock);
+    pthread_cond_destroy(&video_packet_cond_lock);
     pthread_mutex_destroy(&main_evt_mutex_lock);
     pthread_cond_destroy(&main_evt_cond_lock);
 }
@@ -398,7 +393,6 @@ void VideoController::dealVideoEvtLoop(JNIEnv *env) {
     Msg msg{.what = MSG_QUIT};
     LogUtil::logD(TAG, {"dealVideoEvtLoop: tid = ", std::to_string((int)syscall(SYS_gettid))});
     while(true) {
-        LogUtil::logD(TAG, {"dealVideoEvtLoop: dequeue video event"});
         msg = videoEventDequeue();
         switch (msg.what) {
             case MSG_PLAY: {
@@ -423,34 +417,30 @@ void VideoController::dealVideoEvtLoop(JNIEnv *env) {
                     p_video_packet_queue->pop();
                     p_yuv = new DataYUV420;
                     p_yuv->width = -1;
-                    LogUtil::logD(TAG, {"dealVideoEvtLoop: decode packet"});
                     p_video_decoder->decodePacket(&video_packet, p_yuv);
                     if (p_yuv->width > 0) {
                         updateVideoClock(p_yuv->pts);
                         LogUtil::logD(TAG, {"dealVideoEvtLoop: video time: ", std::to_string(video_clock)});
                         video_sleep_time = getSleepTime(main_clock - video_clock);
                         usleep(video_sleep_time * ONE_MIC0_SEC);
-                        LogUtil::logD(TAG, {"dealVideoEvtLoop: finish sleeping"});
                         if ((listener = JavaCallbackUtil::findListener(
                                 &global_listeners,reinterpret_cast<jlong>(this))) != nullptr) {
                             JavaCallbackUtil::callVideoFrame(env, listener, p_yuv->width, p_yuv->height,
                                                              p_yuv->y_data, p_yuv->u_data, p_yuv->v_data);
                         }
-                        LogUtil::logD(TAG, {"dealVideoEvtLoop: finish call back to java"});
                     }
                     av_packet_unref(&video_packet);
                     pthread_mutex_unlock(&video_packet_mutex_lock);
                 }
-                LogUtil::logD(TAG, {"dealVideoEvtLoop: play state is changed"});
                 break;
             }
             case MSG_STOP: {
-                LogUtil::logD(TAG, {"dealVideoEvtLoop: handle stop"});
+                LogUtil::logD(TAG, {"dealVideoEvtLoop: handle msg stop"});
                 videoPacketDelete();
                 goto quit;
             }
             case MSG_QUIT: {
-                LogUtil::logD(TAG, {"dealVideoEvtLoop: handle quit"});
+                LogUtil::logD(TAG, {"dealVideoEvtLoop: handle msg quit"});
                 videoPacketDelete();
                 goto quit;
             }
@@ -467,12 +457,6 @@ void VideoController::dealVideoEvtLoop(JNIEnv *env) {
     if (p_ffmpeg_core != nullptr)
         delete p_ffmpeg_core;
     p_ffmpeg_core = nullptr;
-
-    pthread_mutex_destroy(&video_evt_mutex_lock);
-    pthread_cond_destroy(&video_evt_cond_lock);
-    pthread_mutex_destroy(&video_packet_mutex_lock);
-    pthread_cond_destroy(&video_packet_cond_lock);
-
     mainEventEnqueue(MSG_STOP);
 }
 
@@ -653,7 +637,6 @@ bool VideoController::playAudio() {
         }
         audio_packet = p_audio_packet_queue->front();
         p_audio_packet_queue->pop();
-        LogUtil::logD(TAG, {"playAudio: decodePacket"});
         tmp_audio_data = p_audio->decodePacket(&audio_packet);
         if (tmp_audio_data->buf_size > 0) {
             if(tmp_audio_data->now_time < main_clock) tmp_audio_data->now_time = main_clock;
@@ -695,8 +678,10 @@ void VideoController::videoEventEnqueue(MediaMsg in_msg_type) {
         return;
     Msg msg{.what = in_msg_type};
     pthread_mutex_lock(&video_evt_mutex_lock);
-    if (p_video_evt_queue == nullptr)
+    if (p_video_evt_queue == nullptr) {
+        LogUtil::logD(TAG, {"videoEventEnqueue: queue empty"});
         return;
+    }
     p_video_evt_queue->push(msg);
     pthread_cond_signal(&video_evt_cond_lock);
     pthread_mutex_unlock(&video_evt_mutex_lock);
