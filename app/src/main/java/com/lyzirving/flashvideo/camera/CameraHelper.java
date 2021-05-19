@@ -50,7 +50,6 @@ public class CameraHelper {
 
     private volatile static CameraHelper sInstance;
 
-    private ImageReader mImageReader;
     private CameraDevice mCamera;
     private SurfaceTexture mOesTexture;
     private CaptureRequest.Builder mPreviewRequestBuilder;
@@ -66,25 +65,13 @@ public class CameraHelper {
      * view's height should be preview.getWidth();
      */
     private Size mPreviewSize;
-    private Size mLargestJpegImageSize;
     private String mCameraId;
     private boolean mFlashSupport;
 
     private HandlerThread mCameraThread;
     private Handler mCameraHandler;
 
-    private CameraHelper() {
-    }
-
-    private ImageReader.OnImageAvailableListener mImageAvailableListener = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            Image image = reader.acquireNextImage();
-            if (image != null) {
-                image.close();
-            }
-        }
-    };
+    private CameraHelper() {}
 
     private CameraDevice.StateCallback mCameraStateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -123,12 +110,14 @@ public class CameraHelper {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                 // Flash is automatically enabled when necessary.
-                if (mFlashSupport) {
+                /*if (mFlashSupport) {
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
                             CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-                }
+                }*/
                 // Finally, we start displaying the camera preview.
                 mPreviewRequest = mPreviewRequestBuilder.build();
+                //the preview data will continuously send data to SurfaceTexture
+                //the onFrameAvailable callback will be called
                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mCameraHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
@@ -162,16 +151,12 @@ public class CameraHelper {
             if (null != mCamera) {
                 mCamera.close();
             }
-            if (null != mImageReader) {
-                mImageReader.close();
-            }
             stopCameraThread();
         } catch (Exception e) {
             LogUtil.e(TAG, "closeCamera: exception happens, " + e.getMessage());
             e.printStackTrace();
         } finally {
             mCaptureSession = null;
-            mImageReader = null;
             mCamera = null;
         }
     }
@@ -205,19 +190,16 @@ public class CameraHelper {
             return;
         }
         //get largest image size of jpeg this camera supports
-        mLargestJpegImageSize = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
+        Size largestOutputSize = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.NV21)), new CompareSizesByArea());
         Boolean available = attr.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
         mFlashSupport = available == null ? false : available;
-        mPreviewSize = getPreviewSize(ctx, attr, map, width, height, mLargestJpegImageSize);
+        mPreviewSize = getPreviewSize(ctx, attr, map, width, height, largestOutputSize);
         LogUtil.d(TAG, "openCamera: largest jpeg image size = ("
-                + mLargestJpegImageSize.getWidth() + ", " + mLargestJpegImageSize.getHeight() + ")"
+                + largestOutputSize.getWidth() + ", " + largestOutputSize.getHeight() + ")"
                 + ", flash support = " + mFlashSupport + ", preview size = ("
                 + mPreviewSize.getWidth() + ", " + mPreviewSize.getHeight() + ")");
 
         startCameraThread();
-        //the output is transformed to yuv 420
-        mImageReader = ImageReader.newInstance(mPreviewSize.getWidth(), mPreviewSize.getHeight(), ImageFormat.YUV_420_888, 2);
-        mImageReader.setOnImageAvailableListener(mImageAvailableListener, mCameraHandler);
     }
 
     public void setOesTexture(SurfaceTexture texture) {
@@ -237,7 +219,7 @@ public class CameraHelper {
             Surface surface = new Surface(mOesTexture);
             mPreviewRequestBuilder = mCamera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(surface);
-            mCamera.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()), mCaptureSessionCallback, mCameraHandler);
+            mCamera.createCaptureSession(Arrays.asList(surface), mCaptureSessionCallback, mCameraHandler);
         } catch (Exception e) {
             LogUtil.d(TAG, "createCameraPreviewSession: exception happens, " + e.getMessage());
             e.printStackTrace();

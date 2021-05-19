@@ -30,8 +30,9 @@ public class CameraRender implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        //acquire new image data
         if (mOesTexture != null) {
+            //update and consume the image data
+            //or the next frame won't come
             mOesTexture.updateTexImage();
         }
     }
