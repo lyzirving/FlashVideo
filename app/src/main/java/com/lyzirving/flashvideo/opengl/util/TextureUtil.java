@@ -3,6 +3,7 @@ package com.lyzirving.flashvideo.opengl.util;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.os.Environment;
@@ -13,6 +14,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import javax.microedition.khronos.opengles.GL10;
 
 /**
  * @author lyzirving
@@ -81,24 +84,6 @@ public class TextureUtil {
         return textureId;
     }
 
-    private void saveBmp(Bitmap bmp) {
-        StringBuilder dst = new StringBuilder();
-        dst.append(Environment.getExternalStorageDirectory().getAbsolutePath())
-                .append(File.separator).append("test")
-                .append(File.separator).append("source")
-                .append(File.separator).append(System.currentTimeMillis()).append(".jpg");
-        FileOutputStream fos;
-        try {
-            fos = new FileOutputStream(dst.toString());
-            if (fos != null) {
-                bmp.compress(Bitmap.CompressFormat.JPEG, 90, fos);
-                fos.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public int generateTexture(Context ctx, int drawableId) {
         LogUtil.d(TAG, "generateTexture:");
         int[] textures = new int[1];
@@ -125,6 +110,21 @@ public class TextureUtil {
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmapTmp, 0);
         bitmapTmp.recycle();
         return textureId;
+    }
+
+    public int generateOesTexture() {
+        int[] textureId = new int[1];
+        GLES20.glGenTextures(1, textureId, 0);
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId[0]);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
+        GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
+                GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
+        return textureId[0];
     }
 
     public void updateTexture(int textureId, int[] data, int textureWidth, int textureHeight) {

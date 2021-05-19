@@ -1,4 +1,4 @@
-package com.lyzirving.flashvideo.opengl;
+package com.lyzirving.flashvideo.opengl.video;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;

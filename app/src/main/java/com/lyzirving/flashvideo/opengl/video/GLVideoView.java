@@ -1,4 +1,4 @@
-package com.lyzirving.flashvideo.opengl;
+package com.lyzirving.flashvideo.opengl.video;
 
 import android.content.Context;
 import android.graphics.PixelFormat;

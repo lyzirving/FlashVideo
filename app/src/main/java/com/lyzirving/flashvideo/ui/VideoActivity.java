@@ -11,7 +11,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.lyzirving.flashvideo.R;
-import com.lyzirving.flashvideo.opengl.GLVideoView;
+import com.lyzirving.flashvideo.opengl.video.GLVideoView;
 import com.lyzirving.flashvideo.util.TimeUtil;
 
 import java.io.File;
