@@ -5,15 +5,15 @@ package com.lyzirving.flashvideo.opengl.filter;
  */
 public interface IFilter {
     /**
-     * method must be called before drawn to init the opengl env
-     */
-    void init();
-
-    /**
      * method to draw the specific texture via textureId
      * @param textureId id of texture
      */
     void draw(int textureId);
+
+    /**
+     * method must be called before drawn to init the opengl env
+     */
+    void init();
 
     /**
      * method to release some resources inside the filter

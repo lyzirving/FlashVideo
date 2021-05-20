@@ -25,7 +25,7 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
     public GLCameraView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initEnv();
-        mCameraRender = new CameraRender();
+        mCameraRender = new CameraRender(context);
     }
 
     @Override
