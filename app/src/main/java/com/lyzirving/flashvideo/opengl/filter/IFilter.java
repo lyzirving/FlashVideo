@@ -5,10 +5,11 @@ package com.lyzirving.flashvideo.opengl.filter;
  */
 public interface IFilter {
     /**
-     * method to draw the specific texture via textureId
-     * @param textureId id of texture
+     * method to draw
+     * @param inputTextureId texture that may contains contents
+     * @return texture id that is affected by the drawing process
      */
-    void draw(int textureId);
+    int draw(int inputTextureId);
 
     /**
      * method must be called before drawn to init the opengl env
@@ -31,4 +32,11 @@ public interface IFilter {
      * @param textureCoordinates coordinates of texture
      */
     void setTextureCoordinates(float[] textureCoordinates);
+
+    /**
+     * set output view's size
+     * @param width width
+     * @param height height
+     */
+    void setOutputSize(int width, int height);
 }

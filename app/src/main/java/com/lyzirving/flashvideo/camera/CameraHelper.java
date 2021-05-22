@@ -10,10 +10,9 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.Image;
-import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.text.TextUtils;
@@ -51,6 +50,7 @@ public class CameraHelper {
     private volatile static CameraHelper sInstance;
 
     private CameraDevice mCamera;
+    private int mFrontType;
     private SurfaceTexture mOesTexture;
     private CaptureRequest.Builder mPreviewRequestBuilder;
     private CaptureRequest mPreviewRequest;
@@ -161,6 +161,14 @@ public class CameraHelper {
         }
     }
 
+    public int getFrontType() {
+        return mFrontType;
+    }
+
+    public Size getPreviewSize() {
+        return mPreviewSize;
+    }
+
     @SuppressLint("MissingPermission")
     public void open(Context ctx) {
         if (TextUtils.isEmpty(mCameraId) || mCameraHandler == null) {
@@ -178,6 +186,7 @@ public class CameraHelper {
 
 
     public void prepare(Context ctx, int width, int height, int frontType) {
+        mFrontType = frontType;
         CameraManager manager = (CameraManager) ctx.getSystemService(Context.CAMERA_SERVICE);
         CameraCharacteristics attr = getCameraAttr(manager, frontType);
         if (attr == null) {
@@ -190,7 +199,7 @@ public class CameraHelper {
             return;
         }
         //get largest image size of jpeg this camera supports
-        Size largestOutputSize = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.NV21)), new CompareSizesByArea());
+        Size largestOutputSize = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
         Boolean available = attr.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
         mFlashSupport = available == null ? false : available;
         mPreviewSize = getPreviewSize(ctx, attr, map, width, height, largestOutputSize);
@@ -297,11 +306,15 @@ public class CameraHelper {
     private Size getPreviewSize(Context ctx, CameraCharacteristics attr, StreamConfigurationMap map,
                                 int width, int height, Size largestJpegOutputSize) {
         Display display = ((WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        //phone's natural rotation is vertical-stand, the display rotation is usually 0
+        //i-pad's natural direction is horizontal-stand
         int displayRotation = display.getRotation();
+        LogUtil.d(TAG, "getPreviewSize: display rotation = " + displayRotation);
         Integer sensorOrientation = attr.get(CameraCharacteristics.SENSOR_ORIENTATION);
         if (sensorOrientation == null) {
-            sensorOrientation = 90;
+            sensorOrientation = mFrontType == CameraMetadata.LENS_FACING_FRONT ? 270 : 0;
         }
+        LogUtil.d(TAG, "getPreviewSize: sensor rotation = " + sensorOrientation);
         boolean swapDimension = needSwapDimension(displayRotation, sensorOrientation);
         Point windowSize = new Point();
         display.getSize(windowSize);

@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.lyzirving.flashvideo.ui.CameraActivity;
 import com.lyzirving.flashvideo.ui.MusicActivity;
 import com.lyzirving.flashvideo.ui.VideoActivity;
 import com.lyzirving.flashvideo.util.LogUtil;
@@ -27,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "MainActivity";
     private static final int CODE_REQUEST_READ_WRITE_PERMISSION = 0x01;
 
-    private Button mBtnStartMusic, mBtnStartVideo;
+    private Button mBtnStartMusic, mBtnStartVideo, mBtnStartCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +49,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (requestCode) {
             case CODE_REQUEST_READ_WRITE_PERMISSION: {
                 LogUtil.d(TAG, "onRequestPermissionsResult: " + CODE_REQUEST_READ_WRITE_PERMISSION);
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED
+                        && grantResults[2] == PackageManager.PERMISSION_GRANTED) {
                     LogUtil.d(TAG, "onRequestPermissionsResult: permission granted");
                     enableButtons(true);
                 }
@@ -71,6 +73,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(VideoActivity.class);
                 break;
             }
+            case R.id.btn_start_camera: {
+                startActivity(CameraActivity.class);
+                break;
+            }
             default: {
                 break;
             }
@@ -80,14 +86,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void enableButtons(boolean enable) {
         mBtnStartMusic.setEnabled(enable);
         mBtnStartVideo.setEnabled(enable);
+        mBtnStartCamera.setEnabled(enable);
     }
 
     private void initView() {
         mBtnStartMusic = findViewById(R.id.btn_start_music);
         mBtnStartVideo = findViewById(R.id.btn_start_video);
+        mBtnStartCamera = findViewById(R.id.btn_start_camera);
 
         mBtnStartMusic.setOnClickListener(this);
         mBtnStartVideo.setOnClickListener(this);
+        mBtnStartCamera.setOnClickListener(this);
     }
 
     private void requestUserPermission() {
@@ -95,7 +104,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (permissionState != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE},
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.CAMERA},
                     CODE_REQUEST_READ_WRITE_PERMISSION);
         } else {
             LogUtil.d(TAG, "requestUserPermission: permission granted");

@@ -29,4 +29,15 @@
         android:layout_marginStart="10dp"
         android:enabled="false" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_start_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="@string/tip_go_camera"
+        app:layout_constraintLeft_toRightOf="@+id/btn_start_video"
+        app:layout_constraintTop_toTopOf="@+id/btn_start_video"
+        android:layout_marginStart="10dp"
+        android:enabled="false" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

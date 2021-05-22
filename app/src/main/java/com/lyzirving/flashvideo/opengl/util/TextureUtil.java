@@ -6,12 +6,9 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
-import android.os.Environment;
 
 import com.lyzirving.flashvideo.util.LogUtil;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -23,6 +20,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class TextureUtil {
     private static final String TAG = "TextureUtil";
     public static final int ID_NO_TEXTURE = -1;
+    public static final int ID_NO_FRAME_BUFFER = -1;
 
     private static volatile TextureUtil sInstance;
 
@@ -124,6 +122,7 @@ public class TextureUtil {
                 GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
                 GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         return textureId[0];
     }
 

@@ -1,5 +1,7 @@
 package com.lyzirving.flashvideo.opengl.util;
 
+import android.util.Size;
+
 import com.lyzirving.flashvideo.util.LogUtil;
 
 /**
@@ -48,7 +50,7 @@ public class VertexUtil {
         return sInstance;
     }
 
-    public float[] getDefaultVertexCoordinates() {
+    public float[] getDefaultVertex() {
         int len = mDefaultVertexCoordinates.length;
         float[] result = new float[len];
         System.arraycopy(mDefaultVertexCoordinates, 0, result, 0, len);

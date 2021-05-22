@@ -3,7 +3,7 @@ package com.lyzirving.flashvideo.opengl.video;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 
-import com.lyzirving.flashvideo.opengl.filter.YuvVideoFilter;
+import com.lyzirving.flashvideo.opengl.filter.YuvFilter;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.opengl.util.VertexUtil;
 import com.lyzirving.flashvideo.player.FlashVideo;
@@ -32,7 +32,7 @@ public class VideoRender implements GLSurfaceView.Renderer, IPlayer {
 
     private GLSurfaceView mView;
     private FlashVideo mVideo;
-    private YuvVideoFilter mVideoBgFilter;
+    private YuvFilter mVideoBgFilter;
     private VideoListenerAdapter mVideoListener;
     private GLVideoView.GLVideoViewListener mVideoViewListener;
 
@@ -40,7 +40,7 @@ public class VideoRender implements GLSurfaceView.Renderer, IPlayer {
         mView = view;
         mVideo = new FlashVideo();
         mVideo.setListener(getVideoListener());
-        mVideoBgFilter = new YuvVideoFilter(view.getContext());
+        mVideoBgFilter = new YuvFilter(view.getContext());
         mRunPreDraw = new LinkedList<>();
     }
 

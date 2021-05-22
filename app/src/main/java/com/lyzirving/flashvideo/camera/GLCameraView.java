@@ -35,8 +35,8 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
+        CameraHelper.get().prepare(getContext(), width, height, CameraMetadata.LENS_FACING_BACK);
         mCameraRender.onSurfaceChanged(gl, width, height);
-        CameraHelper.get().prepare(getContext(), width, height, CameraMetadata.LENS_FACING_FRONT);
         CameraHelper.get().setOesTexture(mCameraRender.getOesTexture());
         mCameraRender.getOesTexture().setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
             @Override
@@ -50,6 +50,12 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
     @Override
     public void onDrawFrame(GL10 gl) {
         mCameraRender.onDrawFrame(gl);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mCameraRender.destroy();
     }
 
     private void initEnv() {
