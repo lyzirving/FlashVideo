@@ -3,9 +3,11 @@ package com.lyzirving.flashvideo.camera;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraMetadata;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
+import android.view.SurfaceHolder;
+
+import com.lyzirving.flashvideo.util.LogUtil;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -28,14 +30,21 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         mCameraRender = new CameraRender(context);
     }
 
+    public void closeCamera() {
+        CameraHelper.get().closeCamera();
+    }
+
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        LogUtil.d(TAG, "onSurfaceCreated");
         mCameraRender.onSurfaceCreated(gl, config);
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        CameraHelper.get().prepare(getContext(), width, height, CameraMetadata.LENS_FACING_BACK);
+        LogUtil.d(TAG, "onSurfaceChanged: width = " + width + ", height = " + height);
+        mCameraRender.preOnSurfaceChanged();
+        CameraHelper.get().prepare(getContext(), width, height, CameraHelper.get().getFrontType());
         mCameraRender.onSurfaceChanged(gl, width, height);
         CameraHelper.get().setOesTexture(mCameraRender.getOesTexture());
         mCameraRender.getOesTexture().setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
@@ -53,9 +62,27 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
     }
 
     @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        LogUtil.d(TAG, "surfaceDestroyed");
         mCameraRender.destroy();
+        super.surfaceDestroyed(holder);
+    }
+
+    public void switchFace(int type) {
+        if (CameraHelper.get().checkFaceType(type)) {
+            onPause();
+            CameraHelper.get().setFrontType(type);
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    onResume();
+                }
+            }, 50);
+        }
+    }
+
+    public void takePhoto() {
+        mCameraRender.takePhoto();
     }
 
     private void initEnv() {

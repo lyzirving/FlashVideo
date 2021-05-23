@@ -35,8 +35,8 @@ public class CameraRender implements GLSurfaceView.Renderer {
     private SurfaceTexture mOesTexture;
     private OesFilter mOesFilter;
     private ShowFilter mShowFilter;
-
-    private float[] mOesFilterM = new float[16];
+    private float[] mOesFilterM;
+    private int mViewWidth, mViewHeight;
 
     public CameraRender(Context context) {
         mContext = context;
@@ -44,12 +44,19 @@ public class CameraRender implements GLSurfaceView.Renderer {
     }
 
     public void destroy() {
+        if (mOesTextureId != TextureUtil.ID_NO_TEXTURE) {
+            TextureUtil.get().deleteTexture(mOesTextureId);
+            mOesTextureId = TextureUtil.ID_NO_TEXTURE;
+        }
         if (mOesFilter != null) {
             mOesFilter.release();
+            mOesFilter = null;
         }
         if (mShowFilter != null) {
             mShowFilter.release();
+            mShowFilter = null;
         }
+        mOesTexture = null;
     }
     
     public SurfaceTexture getOesTexture() {
@@ -57,16 +64,13 @@ public class CameraRender implements GLSurfaceView.Renderer {
     }
 
     @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        mOesTextureId = TextureUtil.get().generateOesTexture();
-        mOesTexture = new SurfaceTexture(mOesTextureId);
-        MatrixUtil.get().initMatrix(mOesFilterM);
-    }
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {}
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        rotateOesMatrix();
-        scaleOesMatrix(CameraHelper.get().getPreviewSize(), width, height);
+        mViewWidth = width;
+        mViewHeight = height;
+        prepareOesFilterMatrix(CameraHelper.get().getPreviewSize());
         mOesFilter = new OesFilter(mContext);
         mOesFilter.setOutputSize(width, height);
         mOesFilter.setVertexCoordinates(VertexUtil.get().getDefaultVertex());
@@ -106,6 +110,41 @@ public class CameraRender implements GLSurfaceView.Renderer {
         mShowFilter.draw(previewFrame);
     }
 
+    public void preOnSurfaceChanged() {
+        mOesTextureId = TextureUtil.get().generateOesTexture();
+        mOesTexture = new SurfaceTexture(mOesTextureId);
+    }
+
+    /**
+     * camera activity must be portrait, so viewWidth must smaller than viewHeight
+     * @param previewSize camera preview size
+     */
+    public void prepareOesFilterMatrix(Size previewSize) {
+        mOesFilterM = new float[16];
+        MatrixUtil.get().initMatrix(mOesFilterM);
+
+        if (CameraHelper.get().getFrontType() == CameraMetadata.LENS_FACING_FRONT) {
+            MatrixUtil.get().rotate(mOesFilterM, 270);
+        } else {
+            MatrixUtil.get().flip(mOesFilterM, true, false);
+            MatrixUtil.get().rotate(mOesFilterM, 90);
+        }
+
+        int previewWidth = previewSize.getHeight();
+        int previewHeight = previewSize.getWidth();
+        float previewRatio = previewWidth * 1f / previewHeight;
+        float viewRatio = mViewWidth * 1f / mViewHeight;
+        if (previewRatio > viewRatio) {
+            MatrixUtil.get().scale(mOesFilterM, viewRatio / previewRatio, 1);
+        }  else if (previewRatio < viewRatio) {
+            MatrixUtil.get().scale(mOesFilterM, 1, previewRatio / viewRatio);
+        }
+    }
+
+    public void takePhoto() {
+
+    }
+
     private void addPreDrawTask(final Runnable runnable) {
         synchronized (mRunPreDraw) {
             mRunPreDraw.add(runnable);
@@ -120,33 +159,6 @@ public class CameraRender implements GLSurfaceView.Renderer {
                     task.run();
                 }
             }
-        }
-    }
-
-    private void rotateOesMatrix() {
-        if (CameraHelper.get().getFrontType() == CameraMetadata.LENS_FACING_FRONT) {
-            MatrixUtil.get().rotate(mOesFilterM, 270);
-        } else {
-            MatrixUtil.get().flip(mOesFilterM, true, false);
-            MatrixUtil.get().rotate(mOesFilterM, 90);
-        }
-    }
-
-    /**
-     * camera activity must be portrait, so viewWidth must smaller than viewHeight
-     * @param previewSize camera preview size
-     * @param viewWidth width of surface texture
-     * @param viewHeight height of surface texture
-     */
-    private void scaleOesMatrix(Size previewSize, int viewWidth, int viewHeight) {
-        int previewWidth = previewSize.getHeight();
-        int previewHeight = previewSize.getWidth();
-        float previewRatio = previewWidth * 1f / previewHeight;
-        float viewRatio = viewWidth * 1f / viewHeight;
-        if (previewRatio > viewRatio) {
-            MatrixUtil.get().scale(mOesFilterM, viewRatio / previewRatio, 1);
-        }  else if (previewRatio < viewRatio) {
-            MatrixUtil.get().scale(mOesFilterM, 1, previewRatio / viewRatio);
         }
     }
 }

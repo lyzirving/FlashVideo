@@ -50,7 +50,7 @@ public class CameraHelper {
     private volatile static CameraHelper sInstance;
 
     private CameraDevice mCamera;
-    private int mFrontType;
+    private int mFrontType = CameraMetadata.LENS_FACING_BACK;
     private SurfaceTexture mOesTexture;
     private CaptureRequest.Builder mPreviewRequestBuilder;
     private CaptureRequest mPreviewRequest;
@@ -143,8 +143,13 @@ public class CameraHelper {
         return sInstance;
     }
 
+    public boolean checkFaceType(int type) {
+        return (type == CameraMetadata.LENS_FACING_BACK || type == CameraMetadata.LENS_FACING_FRONT) && mFrontType != type;
+    }
+
     public void closeCamera() {
         try {
+            LogUtil.d(TAG, "closeCamera");
             if (null != mCaptureSession) {
                 mCaptureSession.close();
             }
@@ -213,6 +218,10 @@ public class CameraHelper {
 
     public void setOesTexture(SurfaceTexture texture) {
         mOesTexture = texture;
+    }
+
+    public void setFrontType(int type) {
+        mFrontType = type;
     }
 
     private void createCameraPreviewSession() {

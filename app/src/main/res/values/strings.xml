@@ -22,5 +22,9 @@
     <string name="tip_success">success</string>
     <string name="tip_fail">fail</string>
 
+    <string name="tip_front_camera">front camera</string>
+    <string name="tip_back_camera">back camera</string>
+    <string name="tip_capture">capture</string>
+
     <string name="msg_default_time">00:00:00</string>
 </resources>

@@ -1,11 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <com.lyzirving.flashvideo.camera.GLCameraView
         android:id="@+id/view_camera_preview"
         android:layout_width="match_parent"
         android:layout_height="450dp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_front"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/view_camera_preview"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_front_camera"
+        android:textSize="18sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@+id/btn_front"
+        app:layout_constraintTop_toTopOf="@+id/btn_front"
+        android:layout_marginStart="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_back_camera"
+        android:textSize="18sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_capture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@+id/btn_back"
+        app:layout_constraintTop_toTopOf="@+id/btn_front"
+        android:layout_marginStart="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_capture"
+        android:textSize="18sp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -55,6 +55,13 @@ public class TextureUtil {
         return sInstance;
     }
 
+    public void deleteTexture(int textureId) {
+        if (textureId != TextureUtil.ID_NO_TEXTURE) {
+            int[] ids = new int[]{textureId};
+            GLES20.glDeleteTextures(1, ids, 0);
+        }
+    }
+
     public float[] getDefaultTextureCoordinates() {
         int len = mDefaultTextureCoordinates.length;
         float[] result = new float[len];
