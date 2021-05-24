@@ -52,6 +52,10 @@ public class BaseFilter implements IFilter {
         }
     }
 
+    public boolean isInit() {
+        return mIsInit;
+    }
+
     @Override
     final public void init() {
         if (!mIsInit) {
@@ -62,6 +66,7 @@ public class BaseFilter implements IFilter {
             initFloatBuffer();
             initTexture();
             initFrameBuffer();
+            onInit();
             mIsInit = true;
         }
     }
@@ -70,6 +75,8 @@ public class BaseFilter implements IFilter {
     public int draw(int textureId) {
         return TextureUtil.ID_NO_TEXTURE;
     }
+
+    protected void onInit() {}
 
     @Override
     public void release() {

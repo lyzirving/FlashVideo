@@ -1,5 +1,9 @@
 package com.lyzirving.flashvideo.util;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 /**
  * @author lyzirving
  */
@@ -50,6 +54,11 @@ public class TimeUtil {
             result.append((int) tmp);
         }
         return result.toString();
+    }
+
+    public static String getCurrentTimeStr() {
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault());
+        return format.format(new Date());
     }
 
 }

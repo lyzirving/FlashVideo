@@ -3,8 +3,6 @@ package com.lyzirving.flashvideo.opengl.filter;
 import android.content.Context;
 import android.opengl.GLES20;
 
-import com.lyzirving.flashvideo.util.LogUtil;
-
 /**
  * filter is used to draw the content of input texture on screen
  * @author lyzirving

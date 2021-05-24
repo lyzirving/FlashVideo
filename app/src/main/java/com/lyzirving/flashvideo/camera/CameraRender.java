@@ -7,13 +7,17 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Size;
 
+import com.lyzirving.flashvideo.opengl.filter.CaptureFilter;
 import com.lyzirving.flashvideo.opengl.filter.OesFilter;
 import com.lyzirving.flashvideo.opengl.filter.ShowFilter;
 import com.lyzirving.flashvideo.opengl.util.MatrixUtil;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.opengl.util.VertexUtil;
+import com.lyzirving.flashvideo.util.LogUtil;
 
+import java.nio.ByteBuffer;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Queue;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -35,8 +39,11 @@ public class CameraRender implements GLSurfaceView.Renderer {
     private SurfaceTexture mOesTexture;
     private OesFilter mOesFilter;
     private ShowFilter mShowFilter;
+    private CaptureFilter mCaptureFilter;
     private float[] mOesFilterM;
     private int mViewWidth, mViewHeight;
+
+    private boolean mTakePhoto;
 
     public CameraRender(Context context) {
         mContext = context;
@@ -55,6 +62,10 @@ public class CameraRender implements GLSurfaceView.Renderer {
         if (mShowFilter != null) {
             mShowFilter.release();
             mShowFilter = null;
+        }
+        if (mCaptureFilter != null) {
+            mCaptureFilter.release();
+            mCaptureFilter = null;
         }
         mOesTexture = null;
     }
@@ -108,6 +119,7 @@ public class CameraRender implements GLSurfaceView.Renderer {
 
         int previewFrame = mOesFilter.draw(mOesTextureId);
         mShowFilter.draw(previewFrame);
+        takePhotoIfNeed(previewFrame);
     }
 
     public void preOnSurfaceChanged() {
@@ -142,7 +154,21 @@ public class CameraRender implements GLSurfaceView.Renderer {
     }
 
     public void takePhoto() {
-
+        if (mCaptureFilter == null) {
+            mCaptureFilter = new CaptureFilter(mContext);
+            mCaptureFilter.setOutputSize(mViewWidth, mViewHeight);
+            mCaptureFilter.setVertexCoordinates(VertexUtil.get().getDefaultVertex());
+            mCaptureFilter.setTextureCoordinates(TextureUtil.get().getDefaultTextureCoordinates());
+            mCaptureFilter.setFlip(false, true);
+            mCaptureFilter.setOutputRootDir(Objects.requireNonNull(mContext.getExternalFilesDir(null)).getAbsolutePath() + "/image");
+            addPreDrawTask(new Runnable() {
+                @Override
+                public void run() {
+                    mCaptureFilter.init();
+                }
+            });
+        }
+        mTakePhoto = true;
     }
 
     private void addPreDrawTask(final Runnable runnable) {
@@ -159,6 +185,15 @@ public class CameraRender implements GLSurfaceView.Renderer {
                     task.run();
                 }
             }
+        }
+    }
+
+    private void takePhotoIfNeed(int textureId) {
+        if (mTakePhoto && mCaptureFilter.isInit()) {
+            LogUtil.d(TAG, "takePhotoIfNeed");
+            mTakePhoto = false;
+            mCaptureFilter.draw(textureId);
+            mCaptureFilter.saveCapture();
         }
     }
 }
