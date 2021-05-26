@@ -4,10 +4,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.text.TextUtils;
-import android.util.Size;
 
 import com.lyzirving.flashvideo.R;
-import com.lyzirving.flashvideo.camera.CameraHelper;
 import com.lyzirving.flashvideo.opengl.util.MatrixUtil;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
@@ -98,27 +96,22 @@ public class CaptureFilter extends BaseFilter {
         }
     }
 
-    public void saveCapture() {
-        Size size = CameraHelper.get().getPreviewSize();
-        if (size == null || size.getWidth() == 0 || size.getHeight() == 0) {
-            LogUtil.e(TAG, "saveCapture: preview size is invalid");
-            return;
-        }
+    public void saveCapture(int viewWidth, int viewHeight) {
         if (TextUtils.isEmpty(mOutputRootDir)) {
             LogUtil.e(TAG, "saveCapture: output root directory is empty");
             return;
         }
         if (mByteBuffer == null) {
-            mByteBuffer = ByteBuffer.allocate(size.getWidth() * size.getHeight() * 4);
+            mByteBuffer = ByteBuffer.allocate(viewWidth * viewHeight * 4);
             mByteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         }
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBufferId[0]);
         mByteBuffer.position(0);
-        GLES20.glReadPixels(0, 0, size.getHeight(), size.getWidth(), GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteBuffer);
+        GLES20.glReadPixels(0, 0, viewWidth, viewHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mByteBuffer);
         mByteBuffer.rewind();
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, SCREEN_FRAME_BUFFER_ID);
 
-        Bitmap bmp = Bitmap.createBitmap(size.getHeight(), size.getWidth(), Bitmap.Config.ARGB_8888);
+        Bitmap bmp = Bitmap.createBitmap(viewWidth, viewHeight, Bitmap.Config.ARGB_8888);
         bmp.copyPixelsFromBuffer(mByteBuffer);
         FileOutputStream fos = null;
         File directory = new File(mOutputRootDir);

@@ -193,7 +193,7 @@ public class CameraRender implements GLSurfaceView.Renderer {
             LogUtil.d(TAG, "takePhotoIfNeed");
             mTakePhoto = false;
             mCaptureFilter.draw(textureId);
-            mCaptureFilter.saveCapture();
+            mCaptureFilter.saveCapture(mViewWidth, mViewHeight);
         }
     }
 }
