@@ -28,7 +28,7 @@ public class MatrixUtil {
 
     public void initMatrix(float[] matrix) {
         assert matrix != null;
-        Matrix.setRotateM(matrix, 0, 0, 0, 0, 1);
+        Matrix.setIdentityM(matrix, 0);
     }
 
     public void scale(float[] matrix, float xScale, float yScale) {

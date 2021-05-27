@@ -6,13 +6,13 @@ import android.opengl.GLES20;
 import com.lyzirving.flashvideo.R;
 import com.lyzirving.flashvideo.opengl.util.FilterUtil;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
+import com.lyzirving.flashvideo.opengl.util.VertexUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.LinkedList;
 
-import androidx.annotation.IdRes;
 import androidx.annotation.RawRes;
 
 /**
@@ -44,6 +44,8 @@ public class BaseFilter implements IFilter {
         mVertexShader = FilterUtil.get().readRawText(ctx, vertexShaderRawId);
         mFragmentShader = FilterUtil.get().readRawText(ctx, fragShaderRawId);
         mRunPreDraw = new LinkedList<>();
+        mVertexCoordinates = VertexUtil.get().getDefaultVertex();
+        mTextureCoordinates = TextureUtil.get().getDefaultTextureCoordinates();
     }
 
     protected void addPreDrawTask(Runnable task) {

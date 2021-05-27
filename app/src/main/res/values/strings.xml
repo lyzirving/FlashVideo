@@ -25,6 +25,9 @@
     <string name="tip_front_camera">front camera</string>
     <string name="tip_back_camera">back camera</string>
     <string name="tip_capture">capture</string>
+    <string name="tip_contrast">contrast</string>
+    <string name="tip_saturation">saturation</string>
+    <string name="tip_beauty">beauty</string>
 
     <string name="msg_default_time">00:00:00</string>
 </resources>

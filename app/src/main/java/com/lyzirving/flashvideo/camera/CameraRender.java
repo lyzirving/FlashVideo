@@ -8,6 +8,8 @@ import android.opengl.GLSurfaceView;
 import android.util.Size;
 
 import com.lyzirving.flashvideo.opengl.filter.CaptureFilter;
+import com.lyzirving.flashvideo.opengl.filter.ContrastFilter;
+import com.lyzirving.flashvideo.opengl.filter.FilterGroup;
 import com.lyzirving.flashvideo.opengl.filter.OesFilter;
 import com.lyzirving.flashvideo.opengl.filter.ShowFilter;
 import com.lyzirving.flashvideo.opengl.util.MatrixUtil;
@@ -15,13 +17,16 @@ import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.opengl.util.VertexUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
 
-import java.nio.ByteBuffer;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Queue;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import androidx.annotation.IntDef;
 
 // TODO: 2021/5/21 camera filter needs to create a framebuffer and texture, when they are
 // TODO: 2021/5/21 filled with pixel data, they should be drawn onto the screen 
@@ -31,6 +36,13 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class CameraRender implements GLSurfaceView.Renderer {
     private static final String TAG = "CameraRender";
+    public static final int FILTER_CONTRAST = 0x00;
+    public static final int FILTER_SATURATION = 0x01;
+    public static final int FILTER_BEAUTY = 0x02;
+
+    @IntDef({FILTER_CONTRAST, FILTER_SATURATION, FILTER_BEAUTY})
+    @Retention(RetentionPolicy.SOURCE)
+    @interface FilterType{}
 
     private Context mContext;
     private final Queue<Runnable> mRunPreDraw;
@@ -43,11 +55,49 @@ public class CameraRender implements GLSurfaceView.Renderer {
     private float[] mOesFilterM;
     private int mViewWidth, mViewHeight;
 
+    private FilterGroup mFilterGroup;
+
     private boolean mTakePhoto;
 
     public CameraRender(Context context) {
         mContext = context;
         mRunPreDraw = new LinkedList<>();
+    }
+
+    public void adjustContrast(float val) {
+        mFilterGroup.adjustContrast(val);
+    }
+
+    public void addFilter(@FilterType int type) {
+        switch (type) {
+            case FILTER_CONTRAST: {
+                ContrastFilter filter = new ContrastFilter(mContext);
+                filter.setOutputSize(mViewWidth, mViewHeight);
+                mFilterGroup.add(filter);
+                addPreDrawTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        mFilterGroup.init();
+                    }
+                });
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    public void dequeueFilter(@FilterType int type) {
+        switch (type) {
+            case FILTER_CONTRAST: {
+                mFilterGroup.dequeue(ContrastFilter.class);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
     }
 
     public void destroy() {
@@ -67,6 +117,10 @@ public class CameraRender implements GLSurfaceView.Renderer {
             mCaptureFilter.release();
             mCaptureFilter = null;
         }
+        if (mFilterGroup != null) {
+            mFilterGroup.release();
+            mFilterGroup = null;
+        }
         mOesTexture = null;
     }
     
@@ -75,7 +129,20 @@ public class CameraRender implements GLSurfaceView.Renderer {
     }
 
     @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config) {}
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        if (mOesFilter != null) {
+            mOesFilter.release();
+            mOesFilter = null;
+        }
+        if (mShowFilter != null) {
+            mShowFilter.release();
+            mShowFilter = null;
+        }
+        if (mFilterGroup != null) {
+            mFilterGroup.release();
+        }
+        mFilterGroup = new FilterGroup();
+    }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -84,8 +151,6 @@ public class CameraRender implements GLSurfaceView.Renderer {
         prepareOesFilterMatrix(CameraHelper.get().getPreviewSize());
         mOesFilter = new OesFilter(mContext);
         mOesFilter.setOutputSize(width, height);
-        mOesFilter.setVertexCoordinates(VertexUtil.get().getDefaultVertex());
-        mOesFilter.setTextureCoordinates(TextureUtil.get().getDefaultTextureCoordinates());
         mOesFilter.setMatrix(mOesFilterM);
         addPreDrawTask(new Runnable() {
             @Override
@@ -96,14 +161,14 @@ public class CameraRender implements GLSurfaceView.Renderer {
 
         mShowFilter = new ShowFilter(mContext);
         mShowFilter.setOutputSize(width, height);
-        mShowFilter.setVertexCoordinates(VertexUtil.get().getDefaultVertex());
-        mShowFilter.setTextureCoordinates(TextureUtil.get().getDefaultTextureCoordinates());
         addPreDrawTask(new Runnable() {
             @Override
             public void run() {
                 mShowFilter.init();
             }
         });
+
+        GLES20.glViewport(0, 0, width, height);
     }
 
     @Override
@@ -118,8 +183,10 @@ public class CameraRender implements GLSurfaceView.Renderer {
         runPreDraw();
 
         int previewFrame = mOesFilter.draw(mOesTextureId);
+        previewFrame = mFilterGroup.draw(previewFrame);
+        mShowFilter.flip(false, (mFilterGroup.size() % 2 != 0));
         mShowFilter.draw(previewFrame);
-        takePhotoIfNeed(previewFrame);
+        takePhotoIfNeed(previewFrame, false, (mFilterGroup.size() % 2 == 0));
     }
 
     public void preOnSurfaceChanged() {
@@ -159,7 +226,6 @@ public class CameraRender implements GLSurfaceView.Renderer {
             mCaptureFilter.setOutputSize(mViewWidth, mViewHeight);
             mCaptureFilter.setVertexCoordinates(VertexUtil.get().getDefaultVertex());
             mCaptureFilter.setTextureCoordinates(TextureUtil.get().getDefaultTextureCoordinates());
-            mCaptureFilter.setFlip(false, true);
             mCaptureFilter.setOutputRootDir(Objects.requireNonNull(mContext.getExternalFilesDir(null)).getAbsolutePath() + "/image");
             addPreDrawTask(new Runnable() {
                 @Override
@@ -188,10 +254,11 @@ public class CameraRender implements GLSurfaceView.Renderer {
         }
     }
 
-    private void takePhotoIfNeed(int textureId) {
+    private void takePhotoIfNeed(int textureId, boolean flipX, boolean flipY) {
         if (mTakePhoto && mCaptureFilter.isInit()) {
             LogUtil.d(TAG, "takePhotoIfNeed");
             mTakePhoto = false;
+            mCaptureFilter.setFlip(flipX, flipY);
             mCaptureFilter.draw(textureId);
             mCaptureFilter.saveCapture(mViewWidth, mViewHeight);
         }

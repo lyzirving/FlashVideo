@@ -43,4 +43,78 @@
         android:text="@string/tip_capture"
         android:textSize="18sp" />
 
+    <RadioGroup
+        android:id="@+id/radio_group"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/btn_front"
+        app:layout_constraintLeft_toLeftOf="@+id/btn_front" >
+
+        <RadioButton
+            android:id="@+id/btn_contrast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:textAllCaps="false"
+            android:text="@string/tip_contrast"
+            android:checked="false" />
+
+        <RadioButton
+            android:id="@+id/btn_saturation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:textAllCaps="false"
+            android:text="@string/tip_saturation"
+            android:checked="false" />
+
+        <RadioButton
+            android:id="@+id/btn_beauty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:textAllCaps="false"
+            android:text="@string/tip_beauty"
+            android:checked="false" />
+    </RadioGroup>
+
+    <CheckBox
+        android:id="@+id/check_contrast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="@string/tip_contrast"
+        app:layout_constraintTop_toBottomOf="@+id/radio_group"/>
+
+    <CheckBox
+        android:id="@+id/check_saturation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="@string/tip_saturation"
+        app:layout_constraintTop_toBottomOf="@+id/radio_group"
+        app:layout_constraintStart_toEndOf="@+id/check_contrast"
+        android:layout_marginStart="10dp"/>
+
+    <CheckBox
+        android:id="@+id/check_beauty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="@string/tip_beauty"
+        app:layout_constraintTop_toBottomOf="@+id/radio_group"
+        app:layout_constraintStart_toEndOf="@+id/check_saturation"
+        android:layout_marginStart="10dp"/>
+
+    <androidx.appcompat.widget.AppCompatSeekBar
+        android:id="@+id/seek_bar"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:max="100"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/check_contrast"
+        android:layout_marginTop="10dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

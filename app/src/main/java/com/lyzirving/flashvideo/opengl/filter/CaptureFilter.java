@@ -59,6 +59,8 @@ public class CaptureFilter extends BaseFilter {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, SCREEN_FRAME_BUFFER_ID);
 
+        MatrixUtil.get().initMatrix(mMatrix);
+
         return mTextureId[0];
     }
 
