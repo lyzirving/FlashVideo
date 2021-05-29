@@ -8,26 +8,26 @@ import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
 
 /**
- * filter to adjust contrast, mContrast ranges from [0, 4], and the filter is normal state when value is 1;
+ * the value of saturation ranges from [0, 2] while 1 is default value
  * @author lyzirving
  */
-public class ContrastFilter extends BaseFilter {
-    private static final String TAG = "ContrastFilter";
-    private static final int MIN_CONTRAST = 0;
-    private static final int MAX_CONTRAST = 4;
+public class SaturationFilter extends BaseFilter {
+    private static final String TAG = "SaturationFilter";
+    private static final float MIN_SATURATION = 0f;
+    private static final float MAX_SATURATION = 2f;
 
-    private float mContrast;
-    private int mContrastHandler;
+    private float mSaturation;
+    private int mSaturationHandler;
 
-    public ContrastFilter(Context ctx) {
-        super(ctx, R.raw.default_vertex_shader, R.raw.contrast_shader);
-        mContrast = 1;
+    public SaturationFilter(Context ctx) {
+        super(ctx, R.raw.default_vertex_shader, R.raw.saturation_shader);
+        mSaturation = 1;
     }
 
     @Override
     protected void initHandler() {
         super.initHandler();
-        mContrastHandler = GLES20.glGetUniformLocation(mProgram, "u_contrast");
+        mSaturationHandler = GLES20.glGetUniformLocation(mProgram, "u_saturation");
     }
 
     @Override
@@ -47,14 +47,14 @@ public class ContrastFilter extends BaseFilter {
 
     @Override
     public void adjust(float value) {
-        if (value < MIN_CONTRAST) {
-            mContrast = MIN_CONTRAST;
-        } else if (value > MAX_CONTRAST) {
-            mContrast = MAX_CONTRAST;
+        if (value < MIN_SATURATION) {
+            mSaturation = MIN_SATURATION;
+        } else if (value > MAX_SATURATION) {
+            mSaturation = MAX_SATURATION;
         } else {
-            mContrast = value;
+            mSaturation = value;
         }
-        LogUtil.d(TAG, "adjust: original " + value + ", value = " + mContrast);
+        LogUtil.d(TAG, "adjust: original = " + value + ", value = " + mSaturation);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class ContrastFilter extends BaseFilter {
         GLES20.glEnableVertexAttribArray(mVertexPosHandler);
         GLES20.glEnableVertexAttribArray(mTextureCoordinateHandler);
 
-        GLES20.glUniform1f(mContrastHandler, mContrast);
+        GLES20.glUniform1f(mSaturationHandler, mSaturation);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, inputTextureId);

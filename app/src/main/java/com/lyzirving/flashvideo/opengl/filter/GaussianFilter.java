@@ -8,26 +8,26 @@ import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
 
 /**
- * filter to adjust contrast, mContrast ranges from [0, 4], and the filter is normal state when value is 1;
+ * A more generalized 9x9 Gaussian blur filter
+ * blurSize ranging from 0.0 on up, with a default of 1.0
  * @author lyzirving
  */
-public class ContrastFilter extends BaseFilter {
-    private static final String TAG = "ContrastFilter";
-    private static final int MIN_CONTRAST = 0;
-    private static final int MAX_CONTRAST = 4;
+public class GaussianFilter extends BaseFilter {
+    private static final String TAG = "GaussianFilter";
 
-    private float mContrast;
-    private int mContrastHandler;
+    private float mBluerSize;
+    private int mTextureWidthOffsetHandler, mTextureHeightOffsetHandler;
 
-    public ContrastFilter(Context ctx) {
-        super(ctx, R.raw.default_vertex_shader, R.raw.contrast_shader);
-        mContrast = 1;
+    public GaussianFilter(Context ctx) {
+        super(ctx, R.raw.gaussian_vertex_shader, R.raw.gaussian_fragment_shader);
+        mBluerSize = 1;
     }
 
     @Override
     protected void initHandler() {
         super.initHandler();
-        mContrastHandler = GLES20.glGetUniformLocation(mProgram, "u_contrast");
+        mTextureWidthOffsetHandler = GLES20.glGetUniformLocation(mProgram, "u_texture_width_offset");
+        mTextureHeightOffsetHandler = GLES20.glGetUniformLocation(mProgram, "u_texture_height_offset");
     }
 
     @Override
@@ -46,18 +46,6 @@ public class ContrastFilter extends BaseFilter {
     }
 
     @Override
-    public void adjust(float value) {
-        if (value < MIN_CONTRAST) {
-            mContrast = MIN_CONTRAST;
-        } else if (value > MAX_CONTRAST) {
-            mContrast = MAX_CONTRAST;
-        } else {
-            mContrast = value;
-        }
-        LogUtil.d(TAG, "adjust: original " + value + ", value = " + mContrast);
-    }
-
-    @Override
     public int draw(int inputTextureId) {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBufferId[0]);
         GLES20.glUseProgram(mProgram);
@@ -70,7 +58,8 @@ public class ContrastFilter extends BaseFilter {
         GLES20.glEnableVertexAttribArray(mVertexPosHandler);
         GLES20.glEnableVertexAttribArray(mTextureCoordinateHandler);
 
-        GLES20.glUniform1f(mContrastHandler, mContrast);
+        GLES20.glUniform1f(mTextureWidthOffsetHandler, mBluerSize / mOutputWidth);
+        GLES20.glUniform1f(mTextureHeightOffsetHandler, mBluerSize / mOutputHeight);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, inputTextureId);
@@ -85,4 +74,14 @@ public class ContrastFilter extends BaseFilter {
 
         return mTextureId[0];
     }
+
+    @Override
+    public void adjust(float size) {
+        if (size < 0) {
+            size = 0;
+        }
+        mBluerSize = size;
+        LogUtil.d(TAG, "setBlurSize: original = " + size + ", result = " + mBluerSize);
+    }
+
 }

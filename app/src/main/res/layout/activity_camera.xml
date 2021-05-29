@@ -70,12 +70,12 @@
             android:checked="false" />
 
         <RadioButton
-            android:id="@+id/btn_beauty"
+            android:id="@+id/btn_blur"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
             android:textAllCaps="false"
-            android:text="@string/tip_beauty"
+            android:text="@string/tip_blur"
             android:checked="false" />
     </RadioGroup>
 
@@ -98,11 +98,11 @@
         android:layout_marginStart="10dp"/>
 
     <CheckBox
-        android:id="@+id/check_beauty"
+        android:id="@+id/check_blur"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAllCaps="false"
-        android:text="@string/tip_beauty"
+        android:text="@string/tip_blur"
         app:layout_constraintTop_toBottomOf="@+id/radio_group"
         app:layout_constraintStart_toEndOf="@+id/check_saturation"
         android:layout_marginStart="10dp"/>

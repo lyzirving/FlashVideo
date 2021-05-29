@@ -16,9 +16,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class CameraActivity extends AppCompatActivity implements View.OnClickListener,
-        RadioGroup.OnCheckedChangeListener, SeekBar.OnSeekBarChangeListener, CompoundButton.OnCheckedChangeListener {
+        SeekBar.OnSeekBarChangeListener, CompoundButton.OnCheckedChangeListener {
 
-    private CheckBox mCheckContrast, mCheckSaturation, mCheckBeauty;
+    private CheckBox mCheckContrast, mCheckSaturation, mCheckBlur;
     private RadioGroup mRadioGroup;
     private SeekBar mSeekBar;
     private GLCameraView mCameraView;
@@ -37,7 +37,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 mCameraView.switchFace(CameraMetadata.LENS_FACING_FRONT);
                 mCheckContrast.setChecked(false);
                 mCheckSaturation.setChecked(false);
-                mCheckBeauty.setChecked(false);
+                mCheckBlur.setChecked(false);
                 mRadioGroup.check(-1);
                 mSeekBar.setProgress(0);
                 break;
@@ -46,7 +46,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 mCameraView.switchFace(CameraMetadata.LENS_FACING_BACK);
                 mCheckContrast.setChecked(false);
                 mCheckSaturation.setChecked(false);
-                mCheckBeauty.setChecked(false);
+                mCheckBlur.setChecked(false);
                 mRadioGroup.check(-1);
                 mSeekBar.setProgress(0);
                 break;
@@ -73,27 +73,19 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 break;
             }
             case R.id.check_saturation: {
+                if (isChecked) {
+                    mCameraView.addFilter(CameraRender.FILTER_SATURATION);
+                } else {
+                    mCameraView.dequeueFilter(CameraRender.FILTER_SATURATION);
+                }
                 break;
             }
-            case R.id.check_beauty: {
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    }
-
-    @Override
-    public void onCheckedChanged(RadioGroup group, int checkedId) {
-        switch (checkedId) {
-            case R.id.btn_contrast: {
-                break;
-            }
-            case R.id.btn_saturation: {
-                break;
-            }
-            case R.id.btn_beauty: {
+            case R.id.check_blur: {
+                if (isChecked) {
+                    mCameraView.addFilter(CameraRender.FILTER_BLUR);
+                } else {
+                    mCameraView.dequeueFilter(CameraRender.FILTER_BLUR);
+                }
                 break;
             }
             default: {
@@ -103,21 +95,29 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-    }
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
 
     @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-
-    }
+    public void onStartTrackingTouch(SeekBar seekBar) {}
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         switch (mRadioGroup.getCheckedRadioButtonId()) {
             case R.id.btn_contrast: {
                 if (mCheckContrast.isChecked()) {
-                    mCameraView.adjustContrast(processContract(seekBar.getProgress()));
+                    mCameraView.adjust(CameraRender.FILTER_CONTRAST, seekBar.getProgress());
+                }
+                break;
+            }
+            case R.id.btn_saturation: {
+                if (mCheckSaturation.isChecked()) {
+                    mCameraView.adjust(CameraRender.FILTER_SATURATION, seekBar.getProgress());
+                }
+                break;
+            }
+            case R.id.btn_blur: {
+                if (mCheckBlur.isChecked()) {
+                    mCameraView.adjust(CameraRender.FILTER_BLUR, seekBar.getProgress());
                 }
                 break;
             }
@@ -142,7 +142,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         mCameraView = findViewById(R.id.view_camera_preview);
         mCheckContrast = findViewById(R.id.check_contrast);
         mCheckSaturation = findViewById(R.id.check_saturation);
-        mCheckBeauty = findViewById(R.id.check_beauty);
+        mCheckBlur = findViewById(R.id.check_blur);
         mRadioGroup = findViewById(R.id.radio_group);
         mSeekBar = findViewById(R.id.seek_bar);
 
@@ -150,17 +150,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         findViewById(R.id.btn_back).setOnClickListener(this);
         findViewById(R.id.btn_capture).setOnClickListener(this);
         mSeekBar.setOnSeekBarChangeListener(this);
-        mRadioGroup.setOnCheckedChangeListener(this);
         mCheckContrast.setOnCheckedChangeListener(this);
         mCheckSaturation.setOnCheckedChangeListener(this);
-        mCheckBeauty.setOnCheckedChangeListener(this);
-    }
-
-    private float processContract(int value) {
-        if (value >= 25) {
-            return (value - 25) / 75f * (4 - 1) + 1;
-        } else {
-            return value / 25f;
-        }
+        mCheckBlur.setOnCheckedChangeListener(this);
     }
 }

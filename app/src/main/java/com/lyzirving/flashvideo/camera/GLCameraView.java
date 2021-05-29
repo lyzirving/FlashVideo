@@ -30,12 +30,12 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         mCameraRender = new CameraRender(context);
     }
 
-    public void addFilter(@CameraRender.FilterType int type) {
-        mCameraRender.addFilter(type);
+    public void adjust(@CameraRender.FilterType int type, int value) {
+        mCameraRender.adjust(type, value);
     }
 
-    public void adjustContrast(float val) {
-        mCameraRender.adjustContrast(val);
+    public void addFilter(@CameraRender.FilterType int type) {
+        mCameraRender.addFilter(type);
     }
 
     public void closeCamera() {

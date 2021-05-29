@@ -18,18 +18,18 @@ public class FilterGroup implements IFilter {
         mHead = NODE_NULL;
     }
 
-    public void adjustContrast(float val) {
+    public void adjust(Class clazz, float value) {
         FilterNode tmp = mHead;
-        ContrastFilter target = null;
+        BaseFilter target = null;
         while(tmp != null) {
-            if (contains(tmp, ContrastFilter.class)) {
-                target = (ContrastFilter) tmp.filter;
+            if (contains(tmp, clazz)) {
+                target = tmp.filter;
                 break;
             }
             tmp = tmp.next;
         }
         if (target != null) {
-            target.adjust(val);
+            target.adjust(value);
         }
     }
 
@@ -82,16 +82,22 @@ public class FilterGroup implements IFilter {
                     if (mHead != null) {
                         mHead.prev = null;
                     }
+                    LogUtil.d(TAG, "dequeue: head, count = " + mCount);
                     return tmp.filter;
                 } else {
                     tmp.prev.next = tmp.next;
-                    tmp.next.prev = tmp.prev;
+                    if (tmp.next != null) {
+                        //filter out the last one
+                        tmp.next.prev = tmp.prev;
+                    }
+                    LogUtil.d(TAG, "dequeue: count = " + mCount);
                     return tmp.filter;
                 }
             } else {
                 tmp = tmp.next;
             }
         } while (tmp != null);
+        LogUtil.d(TAG, "dequeue: null");
         return null;
     }
 
@@ -107,17 +113,18 @@ public class FilterGroup implements IFilter {
     }
 
     public BaseFilter peek() {
-        if (mHead == null) {
-            return null;
-        } else {
+        BaseFilter result = null;
+        if (mHead != null) {
             FilterNode first = mHead;
             mHead = first.next;
             if (mHead != null) {
                 mHead.prev = null;
             }
             mCount--;
-            return first.filter;
+            result = first.filter;
         }
+        LogUtil.d(TAG, "peek: " + mCount);
+        return result;
     }
 
     @Override

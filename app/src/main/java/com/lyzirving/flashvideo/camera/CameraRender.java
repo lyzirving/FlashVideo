@@ -10,7 +10,9 @@ import android.util.Size;
 import com.lyzirving.flashvideo.opengl.filter.CaptureFilter;
 import com.lyzirving.flashvideo.opengl.filter.ContrastFilter;
 import com.lyzirving.flashvideo.opengl.filter.FilterGroup;
+import com.lyzirving.flashvideo.opengl.filter.GaussianFilter;
 import com.lyzirving.flashvideo.opengl.filter.OesFilter;
+import com.lyzirving.flashvideo.opengl.filter.SaturationFilter;
 import com.lyzirving.flashvideo.opengl.filter.ShowFilter;
 import com.lyzirving.flashvideo.opengl.util.MatrixUtil;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
@@ -38,11 +40,11 @@ public class CameraRender implements GLSurfaceView.Renderer {
     private static final String TAG = "CameraRender";
     public static final int FILTER_CONTRAST = 0x00;
     public static final int FILTER_SATURATION = 0x01;
-    public static final int FILTER_BEAUTY = 0x02;
+    public static final int FILTER_BLUR = 0x02;
 
-    @IntDef({FILTER_CONTRAST, FILTER_SATURATION, FILTER_BEAUTY})
+    @IntDef({FILTER_CONTRAST, FILTER_SATURATION, FILTER_BLUR})
     @Retention(RetentionPolicy.SOURCE)
-    @interface FilterType{}
+    public @interface FilterType{}
 
     private Context mContext;
     private final Queue<Runnable> mRunPreDraw;
@@ -64,14 +66,54 @@ public class CameraRender implements GLSurfaceView.Renderer {
         mRunPreDraw = new LinkedList<>();
     }
 
-    public void adjustContrast(float val) {
-        mFilterGroup.adjustContrast(val);
+    public void adjust(@FilterType int type, int value) {
+        switch (type) {
+            case FILTER_CONTRAST: {
+                mFilterGroup.adjust(ContrastFilter.class, processContract(value));
+                break;
+            }
+            case FILTER_SATURATION: {
+                mFilterGroup.adjust(SaturationFilter.class, processSaturation(value));
+                break;
+            }
+            case FILTER_BLUR: {
+                mFilterGroup.adjust(GaussianFilter.class, processGaussian(value));
+                break;
+            }
+            default: {
+                break;
+            }
+        }
     }
 
     public void addFilter(@FilterType int type) {
         switch (type) {
             case FILTER_CONTRAST: {
                 ContrastFilter filter = new ContrastFilter(mContext);
+                filter.setOutputSize(mViewWidth, mViewHeight);
+                mFilterGroup.add(filter);
+                addPreDrawTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        mFilterGroup.init();
+                    }
+                });
+                break;
+            }
+            case FILTER_SATURATION: {
+                SaturationFilter filter = new SaturationFilter(mContext);
+                filter.setOutputSize(mViewWidth, mViewHeight);
+                mFilterGroup.add(filter);
+                addPreDrawTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        mFilterGroup.init();
+                    }
+                });
+                break;
+            }
+            case FILTER_BLUR: {
+                GaussianFilter filter = new GaussianFilter(mContext);
                 filter.setOutputSize(mViewWidth, mViewHeight);
                 mFilterGroup.add(filter);
                 addPreDrawTask(new Runnable() {
@@ -92,6 +134,14 @@ public class CameraRender implements GLSurfaceView.Renderer {
         switch (type) {
             case FILTER_CONTRAST: {
                 mFilterGroup.dequeue(ContrastFilter.class);
+                break;
+            }
+            case FILTER_SATURATION: {
+                mFilterGroup.dequeue(SaturationFilter.class);
+                break;
+            }
+            case FILTER_BLUR: {
+                mFilterGroup.dequeue(GaussianFilter.class);
                 break;
             }
             default: {
@@ -129,23 +179,11 @@ public class CameraRender implements GLSurfaceView.Renderer {
     }
 
     @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        if (mOesFilter != null) {
-            mOesFilter.release();
-            mOesFilter = null;
-        }
-        if (mShowFilter != null) {
-            mShowFilter.release();
-            mShowFilter = null;
-        }
-        if (mFilterGroup != null) {
-            mFilterGroup.release();
-        }
-        mFilterGroup = new FilterGroup();
-    }
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {}
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
+        releaseBeforeResume();
         mViewWidth = width;
         mViewHeight = height;
         prepareOesFilterMatrix(CameraHelper.get().getPreviewSize());
@@ -262,5 +300,44 @@ public class CameraRender implements GLSurfaceView.Renderer {
             mCaptureFilter.draw(textureId);
             mCaptureFilter.saveCapture(mViewWidth, mViewHeight);
         }
+    }
+
+    private float processContract(int value) {
+        if (value >= 25) {
+            return (value - 25) / 75f * (4 - 1) + 1;
+        } else {
+            return value / 25f;
+        }
+    }
+
+    private float processSaturation(int value) {
+        if (value >= 50) {
+            return (value - 50) / 50f + 1;
+        } else {
+            return 1 - (50 - value) / 50f;
+        }
+    }
+
+    private float processGaussian(int value) {
+        if (value >= 20) {
+            return (value - 20) / 20f + 1;
+        } else {
+            return 1 - (20 - value) / 20f;
+        }
+    }
+
+    private void releaseBeforeResume() {
+        if (mOesFilter != null) {
+            mOesFilter.release();
+            mOesFilter = null;
+        }
+        if (mShowFilter != null) {
+            mShowFilter.release();
+            mShowFilter = null;
+        }
+        if (mFilterGroup != null) {
+            mFilterGroup.release();
+        }
+        mFilterGroup = new FilterGroup();
     }
 }

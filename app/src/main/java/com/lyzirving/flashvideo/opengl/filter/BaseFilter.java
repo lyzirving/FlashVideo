@@ -48,6 +48,10 @@ public class BaseFilter implements IFilter {
         mTextureCoordinates = TextureUtil.get().getDefaultTextureCoordinates();
     }
 
+    public void adjust(float value) {
+        //implementation in subclass
+    }
+
     protected void addPreDrawTask(Runnable task) {
         synchronized (mRunPreDraw) {
             mRunPreDraw.addLast(task);
