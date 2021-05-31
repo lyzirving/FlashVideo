@@ -55,6 +55,14 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 mCameraView.takePhoto();
                 break;
             }
+            case R.id.btn_start_record: {
+                mCameraView.switchRecord(true);
+                break;
+            }
+            case R.id.btn_stop_record: {
+                mCameraView.switchRecord(false);
+                break;
+            }
             default: {
                 break;
             }
@@ -130,6 +138,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
     @Override
     protected void onPause() {
         super.onPause();
+        mCameraView.switchRecord(false);
         mCameraView.closeCamera();
     }
 
@@ -149,6 +158,8 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         findViewById(R.id.btn_front).setOnClickListener(this);
         findViewById(R.id.btn_back).setOnClickListener(this);
         findViewById(R.id.btn_capture).setOnClickListener(this);
+        findViewById(R.id.btn_start_record).setOnClickListener(this);
+        findViewById(R.id.btn_stop_record).setOnClickListener(this);
         mSeekBar.setOnSeekBarChangeListener(this);
         mCheckContrast.setOnCheckedChangeListener(this);
         mCheckSaturation.setOnCheckedChangeListener(this);

@@ -3,6 +3,7 @@ package com.lyzirving.flashvideo.camera;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraMetadata;
+import android.opengl.EGL14;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Size;
@@ -17,6 +18,7 @@ import com.lyzirving.flashvideo.opengl.filter.ShowFilter;
 import com.lyzirving.flashvideo.opengl.util.MatrixUtil;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.opengl.util.VertexUtil;
+import com.lyzirving.flashvideo.record.RecordThread;
 import com.lyzirving.flashvideo.util.LogUtil;
 
 import java.lang.annotation.Retention;
@@ -58,6 +60,8 @@ public class CameraRender implements GLSurfaceView.Renderer {
     private int mViewWidth, mViewHeight;
 
     private FilterGroup mFilterGroup;
+
+    private RecordThread mRecordThread;
 
     private boolean mTakePhoto;
 
@@ -223,8 +227,12 @@ public class CameraRender implements GLSurfaceView.Renderer {
         int previewFrame = mOesFilter.draw(mOesTextureId);
         previewFrame = mFilterGroup.draw(previewFrame);
         mShowFilter.flip(false, (mFilterGroup.size() % 2 != 0));
+        //draw on screen
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
         mShowFilter.draw(previewFrame);
         takePhotoIfNeed(previewFrame, false, (mFilterGroup.size() % 2 == 0));
+
+        handleRecording(previewFrame, (mFilterGroup.size() % 2 != 0));
     }
 
     public void preOnSurfaceChanged() {
@@ -258,6 +266,21 @@ public class CameraRender implements GLSurfaceView.Renderer {
         }
     }
 
+    public void switchRecord(boolean on) {
+        if (mRecordThread == null) {
+            mRecordThread = new RecordThread();
+        }
+        if (on) {
+            if (mRecordThread.stateEqual(RecordThread.RECORD_STATE_IDLE)) {
+                mRecordThread.setState(RecordThread.RECORD_STATE_OFF);
+            }
+        } else {
+            if (mRecordThread.stateMoreThan(RecordThread.RECORD_STATE_OFF)) {
+                mRecordThread.setState(RecordThread.RECORD_STATE_STOP_RECORDING);
+            }
+        }
+    }
+
     public void takePhoto() {
         if (mCaptureFilter == null) {
             mCaptureFilter = new CaptureFilter(mContext);
@@ -278,6 +301,43 @@ public class CameraRender implements GLSurfaceView.Renderer {
     private void addPreDrawTask(final Runnable runnable) {
         synchronized (mRunPreDraw) {
             mRunPreDraw.add(runnable);
+        }
+    }
+
+    private void handleRecording(int frameTextureId, boolean flipY) {
+        if (mRecordThread == null) {
+            mRecordThread = new RecordThread();
+        }
+        switch (mRecordThread.getRecordState()) {
+            case RecordThread.RECORD_STATE_OFF: {
+                mRecordThread.prepareEnv(EGL14.eglGetCurrentContext(), mViewWidth, mViewHeight);
+                mRecordThread.start();
+                break;
+            }
+            case RecordThread.RECORD_STATE_PREPARED: {
+                mRecordThread.sendMsg(RecordThread.MSG_PREPARE);
+                break;
+            }
+            case RecordThread.RECORD_STATE_RECORDING: {
+                long timeStamp = mOesTexture.getTimestamp();
+                if (timeStamp == 0) {
+                    LogUtil.d(TAG, "handleRecording: time stamp is 0, ignore");
+                    break;
+                }
+                mRecordThread.sendMsg(RecordThread.MSG_RECORDING, frameTextureId, flipY ? 1 : 0, mOesTexture.getTimestamp());
+                break;
+            }
+            case RecordThread.RECORD_STATE_STOP_RECORDING: {
+                mRecordThread.sendMsg(RecordThread.MSG_STOP);
+                mRecordThread = null;
+                break;
+            }
+            //the switch is not on when state is idle
+            case RecordThread.RECORD_STATE_IDLE:
+            case RecordThread.RECORD_STATE_RUNNING:
+            default: {
+                break;
+            }
         }
     }
 

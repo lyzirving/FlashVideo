@@ -21,6 +21,6 @@ public class LogUtil {
     }
 
     private static String buildTag(String tag) {
-        return new StringBuilder().append(TAG).append("_").append(tag).toString();
+        return TAG + "_" + tag;
     }
 }

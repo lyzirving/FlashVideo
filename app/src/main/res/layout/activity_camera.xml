@@ -8,7 +8,7 @@
     <com.lyzirving.flashvideo.camera.GLCameraView
         android:id="@+id/view_camera_preview"
         android:layout_width="match_parent"
-        android:layout_height="450dp" />
+        android:layout_height="400dp" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_front"
@@ -19,7 +19,7 @@
         android:layout_marginTop="10dp"
         android:textAllCaps="false"
         android:text="@string/tip_front_camera"
-        android:textSize="18sp" />
+        android:textSize="12sp" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_back"
@@ -30,7 +30,7 @@
         android:layout_marginStart="10dp"
         android:textAllCaps="false"
         android:text="@string/tip_back_camera"
-        android:textSize="18sp" />
+        android:textSize="12sp" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_capture"
@@ -41,7 +41,7 @@
         android:layout_marginStart="10dp"
         android:textAllCaps="false"
         android:text="@string/tip_capture"
-        android:textSize="18sp" />
+        android:textSize="12sp" />
 
     <RadioGroup
         android:id="@+id/radio_group"
@@ -116,5 +116,27 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/check_contrast"
         android:layout_marginTop="10dp"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_start_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="@+id/btn_front"
+        app:layout_constraintTop_toBottomOf="@+id/seek_bar"
+        android:layout_marginTop="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_start_record"
+        android:textSize="12sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_stop_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toRightOf="@+id/btn_start_record"
+        app:layout_constraintTop_toTopOf="@+id/btn_start_record"
+        android:layout_marginStart="10dp"
+        android:textAllCaps="false"
+        android:text="@string/tip_stop_record"
+        android:textSize="12sp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

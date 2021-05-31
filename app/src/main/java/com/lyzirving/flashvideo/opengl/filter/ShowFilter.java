@@ -23,7 +23,6 @@ public class ShowFilter extends BaseFilter {
 
     @Override
     public int draw(int textureId) {
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, SCREEN_FRAME_BUFFER_ID);
         GLES20.glUseProgram(mProgram);
         runPreDraw();
 

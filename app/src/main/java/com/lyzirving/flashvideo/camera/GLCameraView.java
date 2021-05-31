@@ -80,6 +80,10 @@ public class GLCameraView extends GLSurfaceView implements GLSurfaceView.Rendere
         super.surfaceDestroyed(holder);
     }
 
+    public void switchRecord(boolean on) {
+        mCameraRender.switchRecord(on);
+    }
+
     public void switchFace(int type) {
         if (CameraHelper.get().checkFaceType(type)) {
             onPause();

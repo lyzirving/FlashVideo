@@ -15,6 +15,7 @@ import android.widget.Button;
 import com.lyzirving.flashvideo.ui.CameraActivity;
 import com.lyzirving.flashvideo.ui.MusicActivity;
 import com.lyzirving.flashvideo.ui.VideoActivity;
+import com.lyzirving.flashvideo.util.ComponentUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
 
 /**
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ComponentUtil.get().init(getApplicationContext());
         setContentView(R.layout.activity_main);
         initView();
     }
@@ -81,6 +83,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ComponentUtil.get().destroy();
     }
 
     private void enableButtons(boolean enable) {
