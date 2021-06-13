@@ -4,6 +4,7 @@
     <string name="tip_go_music">start music</string>
     <string name="tip_go_video">start video</string>
     <string name="tip_go_camera">start camera</string>
+    <string name="tip_go_video_player">start video player</string>
     <string name="tip_init">init</string>
     <string name="tip_play">play</string>
     <string name="tip_pause">pause</string>

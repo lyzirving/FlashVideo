@@ -1,7 +1,8 @@
 #ifndef FLASHVIDEO_COMMON_H
 #define FLASHVIDEO_COMMON_H
 
-enum MediaMsg{
+enum MediaMsg {
+    MSG_IDLE = 0,
     MSG_PLAY = 1,
     MSG_PAUSE = 2,
     MSG_STOP = 3,
@@ -20,6 +21,7 @@ enum MediaState{
     STATE_SEEK = 5,
     STATE_STOP = 6,
     STATE_ERROR = 7,
+    STATE_ABORT = 8,
 };
 
 struct VideoData {

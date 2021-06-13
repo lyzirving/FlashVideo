@@ -29,7 +29,7 @@ public class VideoActivity extends AppCompatActivity implements View.OnClickList
         SeekBar.OnSeekBarChangeListener {
     private static final String TAG = "VideoActivity";
     private static final String LOCAL_VIDEO_PATH = Environment.getExternalStorageDirectory().getAbsolutePath()
-            + File.separator + "0test" + File.separator + "source" + File.separator + "onepieceads.mp4";
+            + File.separator + "0test" + File.separator + "source" + File.separator + "Joker.mp4";
     private static final int MSG_PREPARE = 0x00;
     private static final int MSG_TICK_TIME = 0x01;
     private static final int MSG_STOP = 0x02;

@@ -4,7 +4,7 @@
 #include <map>
 
 #define TAG "AudioController"
-#define CLASS "com/lyzirving/flashvideo/player/FlashAudio"
+#define JAVA_CLASS "com/lyzirving/flashvideo/player/FlashAudio"
 
 static JavaVM* p_global_jvm = nullptr;
 static std::map<jlong, jobject> global_listeners;
@@ -512,15 +512,16 @@ void AudioController::seekToDst(float dst_ratio) {
 
 bool AudioController::registerSelf(JNIEnv *env) {
     int count = sizeof(jniMethods) / sizeof(jniMethods[0]);
-    jclass javaClass = env->FindClass(CLASS);
+    jclass javaClass = env->FindClass(JAVA_CLASS);
     if(!javaClass) {
-        LogUtil::logE(TAG, {"registerSelf: failed to find class ", CLASS});
+        LogUtil::logE(TAG, {"registerSelf: failed to find class ", JAVA_CLASS});
         goto fail;
     }
     if (env->RegisterNatives(javaClass, jniMethods, count) < 0) {
-        LogUtil::logE(TAG, {"registerSelf: failed to register native methods ", CLASS});
+        LogUtil::logE(TAG, {"registerSelf: failed to register native methods ", JAVA_CLASS});
         goto fail;
     }
+    LogUtil::logD(TAG, {"success to register class: ", JAVA_CLASS, ", method count ", std::to_string(count)});
     return true;
     fail:
     return false;

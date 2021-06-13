@@ -113,7 +113,6 @@ bool AudioEngine::createBufQueuePlayer() {
 
 bool AudioEngine::enqueueAudio(int length, unsigned char* data) {
     SLresult res = (*p_buf_queue_itf)->Enqueue(p_buf_queue_itf, data, length);
-    LogUtil::logD(TAG, {"enqueueAudio: " + std::to_string(res)});
     return res == SL_RESULT_SUCCESS;
 }
 
@@ -190,7 +189,6 @@ void AudioEngine::setPauseState() {
             LogUtil::logD(TAG, {"setPauseState: not in play state"});
         }
     }
-
 }
 
 void AudioEngine::setStopState() {

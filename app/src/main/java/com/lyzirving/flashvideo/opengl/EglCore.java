@@ -172,7 +172,7 @@ public class EglCore {
     }
 
     public boolean swapBuffers() {
-        boolean result = EGL14.eglSwapBuffers(mEglDisplay, mEglSurface);;
+        boolean result = EGL14.eglSwapBuffers(mEglDisplay, mEglSurface);
         if (!result) {
             Log.d(TAG, "swapBuffers: failed");
         }

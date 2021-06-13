@@ -40,7 +40,7 @@ void JavaCallbackUtil::callVideoFrame(JNIEnv *env, jobject listener, int width, 
 }
 
 jobject JavaCallbackUtil::findListener(std::map<jlong, jobject> *p_map, jlong key) {
-    auto iterator = p_map->find(key);;
+    auto iterator = p_map->find(key);
     if (iterator == p_map->end()) {
         LogUtil::logE(TAG, {"findListener: failed to find listener"});
         return nullptr;

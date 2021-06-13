@@ -4,7 +4,7 @@
 #include <sys/syscall.h>
 
 #define TAG "VideoController"
-#define CLASS "com/lyzirving/flashvideo/player/FlashVideo"
+#define JAVA_CLASS "com/lyzirving/flashvideo/player/FlashVideo"
 
 static JavaVM* p_global_jvm = nullptr;
 static std::map<jlong, jobject> global_listeners;
@@ -803,15 +803,16 @@ static JNINativeMethod jni_methods[] = {
 
 bool VideoController::registerSelf(JNIEnv *env) {
     int count = sizeof(jni_methods) / sizeof(jni_methods[0]);
-    jclass javaClass = env->FindClass(CLASS);
+    jclass javaClass = env->FindClass(JAVA_CLASS);
     if(!javaClass) {
-        LogUtil::logE(TAG, {"registerSelf: failed to find class ", CLASS});
+        LogUtil::logE(TAG, {"registerSelf: failed to find class ", JAVA_CLASS});
         goto fail;
     }
     if (env->RegisterNatives(javaClass, jni_methods, count) < 0) {
-        LogUtil::logE(TAG, {"registerSelf: failed to register native methods ", CLASS});
+        LogUtil::logE(TAG, {"registerSelf: failed to register native methods ", JAVA_CLASS});
         goto fail;
     }
+    LogUtil::logD(TAG, {"success to register class: ", JAVA_CLASS, ", method count ", std::to_string(count)});
     return true;
     fail:
     return false;
