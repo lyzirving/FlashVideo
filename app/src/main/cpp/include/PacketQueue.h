@@ -24,9 +24,10 @@ public:
         pthread_mutex_destroy(&mutex_lock);
         pthread_cond_destroy(&cond_lock);
     }
+    AVPacket* back();
+    void clear();
     AVPacket* dequeue();
     void enqueue(AVPacket& packet);
-    void clear();
     int size();
 private:
     std::queue<AVPacket>* packet_queue;

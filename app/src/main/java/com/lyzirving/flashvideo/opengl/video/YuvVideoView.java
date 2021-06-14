@@ -29,7 +29,7 @@ public class YuvVideoView extends GLSurfaceView implements GLSurfaceView.Rendere
     private int mViewWidth, mViewHeight, mVideoWidth, mVideoHeight;
     private final Queue<Runnable> mRunPreDraw;
 
-    private boolean mIsRendering;
+    private boolean mIsRendering, mClearBufferBit;
     private ByteBuffer mChannelY, mChannelU, mChannelV;
     private YuvFilter mYuvVideoBgFilter;
 
@@ -50,7 +50,8 @@ public class YuvVideoView extends GLSurfaceView implements GLSurfaceView.Rendere
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         LogUtil.d(TAG, "onSurfaceCreated");
-        GLES20.glClearColor(1f,1f,1f, 1f);
+        GLES20.glClearColor(0,0,0, 1f);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
     }
 
     @Override
@@ -68,8 +69,16 @@ public class YuvVideoView extends GLSurfaceView implements GLSurfaceView.Rendere
     @Override
     public void onDrawFrame(GL10 gl) {
         mIsRendering = true;
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         runPreDraw();
+        if (mYuvVideoBgFilter == null || mClearBufferBit) {
+            LogUtil.d(TAG, "onDrawFrame: clear color bit");
+            mClearBufferBit = false;
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+            if (mYuvVideoBgFilter != null) {
+                mYuvVideoBgFilter.release();
+                mYuvVideoBgFilter = null;
+            }
+        }
         drawOnScreen();
         mIsRendering = false;
     }
@@ -146,6 +155,7 @@ public class YuvVideoView extends GLSurfaceView implements GLSurfaceView.Rendere
                     LogUtil.d(TAG, "onPrepare: duration = " + duration + ", width = " + width + ", height = " + height);
                     mVideoWidth = width;
                     mVideoHeight = height;
+                    mYuvVideoBgFilter = new YuvFilter(getContext());
                     mYuvVideoBgFilter.setVertexCoordinates(VertexUtil.get().createVertexCoordinates(width, height));
                     mYuvVideoBgFilter.setTextureCoordinates(TextureUtil.get().getDefaultTextureCoordinates());
                     addPreDrawTask(new Runnable() {
@@ -164,11 +174,11 @@ public class YuvVideoView extends GLSurfaceView implements GLSurfaceView.Rendere
                     super.onStop();
                     LogUtil.d(TAG, "onStop");
                     mVideoPlayer = null;
-                    //clean the screen
-                    requestRender();
+                    mClearBufferBit = true;
                     if (mVideoViewListener != null) {
                         mVideoViewListener.onVideoStop();
                     }
+                    requestRender();
                 }
 
                 @Override
@@ -191,7 +201,6 @@ public class YuvVideoView extends GLSurfaceView implements GLSurfaceView.Rendere
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
-        mYuvVideoBgFilter = new YuvFilter(getContext());
         mVideoPlayer = new FlashVideoPlayer();
     }
 

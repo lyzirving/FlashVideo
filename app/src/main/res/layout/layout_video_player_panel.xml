@@ -40,7 +40,8 @@
         android:layout_marginStart="10dp"
         android:textAllCaps="false"
         android:text="@string/tip_play"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:enabled="false" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_pause"
@@ -51,7 +52,8 @@
         android:layout_marginStart="10dp"
         android:textAllCaps="false"
         android:text="@string/tip_pause"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:enabled="false" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_stop"
@@ -62,6 +64,7 @@
         android:layout_marginStart="10dp"
         android:textAllCaps="false"
         android:text="@string/tip_stop"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:enabled="false" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

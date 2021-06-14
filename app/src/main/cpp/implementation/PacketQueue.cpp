@@ -1,9 +1,22 @@
 #include "PacketQueue.h"
 
+AVPacket * PacketQueue::back() {
+    AVPacket* res = nullptr;
+    if (packet_queue != nullptr && !packet_queue->empty()) {
+        res = &packet_queue->back();
+    }
+    return res;
+}
+
 void PacketQueue::clear() {
+    AVPacket* tmp = nullptr;
     pthread_mutex_lock(&mutex_lock);
-    while(!packet_queue->empty())
+    while(!packet_queue->empty()) {
+        tmp = &packet_queue->front();
         packet_queue->pop();
+        //must call unref to release native memory
+        if (tmp != nullptr) av_packet_unref(tmp);
+    }
     pthread_mutex_unlock(&mutex_lock);
 }
 

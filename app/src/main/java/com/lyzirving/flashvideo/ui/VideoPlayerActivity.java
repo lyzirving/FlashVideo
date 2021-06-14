@@ -2,6 +2,9 @@ package com.lyzirving.flashvideo.ui;
 
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 
@@ -10,7 +13,9 @@ import com.lyzirving.flashvideo.opengl.video.VideoViewListener;
 import com.lyzirving.flashvideo.opengl.video.YuvVideoView;
 
 import java.io.File;
+import java.lang.ref.SoftReference;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,11 +24,15 @@ import androidx.appcompat.app.AppCompatActivity;
  */
 public class VideoPlayerActivity extends AppCompatActivity implements View.OnClickListener, VideoViewListener {
     private static final String TAG = "VideoPlayerActivity";
+    private static final int MSG_PREPARE = 1;
+    private static final int MSG_STOP = 2;
     private static final String LOCAL_VIDEO_PATH = Environment.getExternalStorageDirectory().getAbsolutePath()
-            + File.separator + "0test" + File.separator + "source" + File.separator + "onepieceads.mp4";
+            + File.separator + "0test" + File.separator + "source" + File.separator + /*"onepieceads.mp4"*/"Joker.mp4";
 
     private Button mBtnPlay, mBtnPause, mBtnStop;
     private YuvVideoView mVideoView;
+
+    private VideoPlayerHandler mHandler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,7 +68,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onPrepare(double duration) {
-
+        mHandler.sendEmptyMessage(MSG_PREPARE);
     }
 
     @Override
@@ -79,7 +88,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onVideoStop() {
-
+        mHandler.sendEmptyMessage(MSG_STOP);
     }
 
     private void initView() {
@@ -92,5 +101,48 @@ public class VideoPlayerActivity extends AppCompatActivity implements View.OnCli
         mBtnPause.setOnClickListener(this);
         mBtnStop.setOnClickListener(this);
         findViewById(R.id.btn_init).setOnClickListener(this);
+
+        mHandler = new VideoPlayerHandler(this, Looper.getMainLooper());
+    }
+
+    private void handlePrepare() {
+        setBtnEnable(true);
+    }
+
+    private void handleStop() {
+        setBtnEnable(false);
+    }
+
+    private void setBtnEnable(boolean enable) {
+        mBtnPlay.setEnabled(enable);
+        mBtnPause.setEnabled(enable);
+        mBtnStop.setEnabled(enable);
+    }
+
+    private static class VideoPlayerHandler extends Handler {
+        private SoftReference<VideoPlayerActivity> mRef;
+
+        VideoPlayerHandler(VideoPlayerActivity activity, Looper looper) {
+            super(looper);
+            mRef = new SoftReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case MSG_PREPARE: {
+                    mRef.get().handlePrepare();
+                    break;
+                }
+                case MSG_STOP: {
+                    mRef.get().handleStop();
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
     }
 }

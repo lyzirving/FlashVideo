@@ -27,9 +27,10 @@ public:
         last_video_pts = 0;
         delay_time = 0;
         audio_is_quitting = false;
+        block_enough_packet = false;
 
-        pthread_mutex_init(&quit_mutex, nullptr);
-        pthread_cond_init(&quit_cond, nullptr);
+        pthread_mutex_init(&wait_mutex, nullptr);
+        pthread_cond_init(&wait_cond, nullptr);
     }
 
     ~VideoManager() {
@@ -57,11 +58,13 @@ public:
             engine = nullptr;
         }
         audio_is_quitting = false;
-        pthread_mutex_destroy(&quit_mutex);
-        pthread_cond_destroy(&quit_cond);
+        block_enough_packet = false;
+        pthread_mutex_destroy(&wait_mutex);
+        pthread_cond_destroy(&wait_cond);
     }
     static bool registerSelf(JNIEnv *env);
 
+    void releaseBlockForEnoughPacket();
     void collectPacket(AVPacket* in_packet);
     void init(char* in_path);
     void dealAudioLoop(JNIEnv* env);
@@ -69,6 +72,7 @@ public:
     void dealMainLoop(JNIEnv* env);
     void dealVideoLoop(JNIEnv* env);
     double getSleepTime(double time_diff);
+    bool hasEnoughPacket();
     void setState(MediaState new_state);
     bool stateEqual(MediaState in_state);
     bool stateMoreThanAndEqual(MediaState in_state);
@@ -84,14 +88,14 @@ private:
     PacketQueue* audio_packet_queue;
 
     char* path;
-    bool flag_eof;
+    bool flag_eof, block_enough_packet;
     double main_clock, last_main_clock, video_clock, delay_time;
     long last_video_pts;
     MediaState state;
 
     bool audio_is_quitting;
-    pthread_mutex_t quit_mutex;
-    pthread_cond_t quit_cond;
+    pthread_mutex_t wait_mutex;
+    pthread_cond_t wait_cond;
 };
 
 #endif

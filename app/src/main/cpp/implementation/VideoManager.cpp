@@ -6,7 +6,9 @@
 #include <sys/syscall.h>
 
 #define TAG "Native_VideoManager"
+#define MAX_PACKET_COUNT (1024 * 100)
 #define FIVE_SEC 5
+#define FIVE_MIN (5 * 60)
 #define THREE_HUNDRED_MILL_SEC 0.3
 #define FORTY_MILL_SEC 0.04
 #define THREE_MILL_SEC 0.003
@@ -124,6 +126,15 @@ void *videoLoop(void *args) {
     return nullptr;
 }
 
+void VideoManager::releaseBlockForEnoughPacket() {
+    if (block_enough_packet && !hasEnoughPacket()) {
+        pthread_mutex_lock(&wait_mutex);
+        block_enough_packet = false;
+        pthread_cond_signal(&wait_cond);
+        pthread_mutex_unlock(&wait_mutex);
+    }
+}
+
 void VideoManager::collectPacket(AVPacket* in_packet) {
     int res = av_read_frame(engine->p_fmt_ctx, in_packet);
     if (AVERROR_EOF == res) {
@@ -143,6 +154,7 @@ void VideoManager::dealAudioLoop(JNIEnv *env) {
     AudioData* data = nullptr;
     AVPacket* audio_packet = nullptr;
     jobject listener = nullptr;
+    LogUtil::logD(TAG, {"dealAudioLoop: tid = ", std::to_string((int)syscall(SYS_gettid))});
     for(;;) {
         if (stateEqual(STATE_STOP)) {
             break;
@@ -150,6 +162,7 @@ void VideoManager::dealAudioLoop(JNIEnv *env) {
             has_send_data = false;
         } else if (stateEqual(STATE_PLAY) && !has_send_data) {
             audio_packet = audio_packet_queue->dequeue();
+            releaseBlockForEnoughPacket();
             if (audio_packet != nullptr) {
                 data = audio_player->decodePacket(audio_packet);
                 if (data->buf_size > 0) {
@@ -168,15 +181,15 @@ void VideoManager::dealAudioLoop(JNIEnv *env) {
             }
         }
     }
+    pthread_mutex_lock(&wait_mutex);
     LogUtil::logD(TAG, {"dealAudioLoop: audio is quitting"});
     if (audio_player != nullptr) {
         delete audio_player;
         audio_player = nullptr;
     }
-    pthread_mutex_lock(&quit_mutex);
     audio_is_quitting = false;
-    pthread_cond_signal(&quit_cond);
-    pthread_mutex_unlock(&quit_mutex);
+    pthread_cond_signal(&wait_cond);
+    pthread_mutex_unlock(&wait_mutex);
     LogUtil::logD(TAG, {"dealAudioLoop: audio finishes quitting"});
 }
 
@@ -185,6 +198,7 @@ void VideoManager::dealAudioCallback(JNIEnv* env) {
     bool loopAgain = true;
     while (stateEqual(STATE_PLAY) && loopAgain) {
         AVPacket* audio_packet = audio_packet_queue->dequeue();
+        releaseBlockForEnoughPacket();
         if (audio_packet != nullptr) {
             data = audio_player->decodePacket(audio_packet);
             if (data->buf_size > 0) {
@@ -209,7 +223,7 @@ void VideoManager::dealMainLoop(JNIEnv *env) {
     auto* in_packet = (AVPacket *)av_malloc(sizeof(AVPacket));
     engine = new FFMpegCore;
     engine->setPath(path);
-    if (!engine->createEnv(FFMpegCore::MODE_AUDIO)) {
+    if (!engine->createEnv(FFMpegCore::MODE_VIDEO)) {
         goto quit;
     }
     audio_player = new AudioPlayer;
@@ -239,8 +253,15 @@ void VideoManager::dealMainLoop(JNIEnv *env) {
             goto quit;
         }
         //check this in every loop
-        if (stateMoreThanAndEqual(STATE_INITIALIZED) && stateLessThan(STATE_STOP) && !flag_eof)
+        if (stateMoreThanAndEqual(STATE_INITIALIZED) && stateLessThan(STATE_STOP) && !flag_eof) {
             collectPacket(in_packet);
+            if (hasEnoughPacket()) {
+                pthread_mutex_lock(&wait_mutex);
+                block_enough_packet = true;
+                pthread_cond_wait(&wait_cond, &wait_mutex);
+                pthread_mutex_unlock(&wait_mutex);
+            }
+        }
     }
     quit:
     LogUtil::logD(TAG, {"dealMainLoop: quit"});
@@ -251,20 +272,22 @@ void VideoManager::dealVideoLoop(JNIEnv *env) {
     double video_sleep_time = 0;
     jobject listener = nullptr;
     auto* yuv420 = new DataYUV420;
+    LogUtil::logD(TAG, {"dealVideoLoop: tid = ", std::to_string((int)syscall(SYS_gettid))});
     for(;;) {
         if (stateEqual(STATE_STOP)) {
             if (audio_is_quitting) {
-                pthread_mutex_lock(&quit_mutex);
+                pthread_mutex_lock(&wait_mutex);
                 //double check
                 if (audio_is_quitting) {
                     LogUtil::logD(TAG, {"dealVideoLoop: wait audio to quit"});
-                    pthread_cond_wait(&quit_cond, &quit_mutex);
+                    pthread_cond_wait(&wait_cond, &wait_mutex);
                 }
-                pthread_mutex_unlock(&quit_mutex);
+                pthread_mutex_unlock(&wait_mutex);
             }
             break;
         } else if (stateEqual(STATE_PLAY)) {
             packet = video_packet_queue->dequeue();
+            releaseBlockForEnoughPacket();
             if (packet != nullptr) {
                 yuv420->width = -1;
                 video_decoder->decodePacket(packet, yuv420);
@@ -341,6 +364,17 @@ double VideoManager::getSleepTime(double time_diff) {
     return delay_time;
 }
 
+bool VideoManager::hasEnoughPacket() {
+    bool reach_max_size = (video_packet_queue->size() + audio_packet_queue->size()) > MAX_PACKET_COUNT;
+    AVPacket* back_packet = nullptr;
+    if ((back_packet = audio_packet_queue->back()) == nullptr) {
+        return reach_max_size;
+    }
+    double decode_last_time = back_packet->pts * av_q2d(audio_player->p_audio_decoder->time_base);
+    bool reach_max_time = decode_last_time - main_clock > FIVE_MIN;
+    return reach_max_size || reach_max_time;
+}
+
 void VideoManager::init(char* in_path) {
     if(in_path == nullptr || strlen(in_path) == 0) {
         LogUtil::logE(TAG, {"init: input path is empty"});
@@ -375,6 +409,12 @@ void VideoManager::setState(MediaState new_state) {
     if (new_state == STATE_PLAY) {
         audio_player->setPlayState();
     } else if (new_state == STATE_STOP) {
+        if (block_enough_packet) {
+            pthread_mutex_lock(&wait_mutex);
+            block_enough_packet = false;
+            pthread_cond_signal(&wait_cond);
+            pthread_mutex_unlock(&wait_mutex);
+        }
         audio_is_quitting = true;
         audio_player->setStopState();
     }
