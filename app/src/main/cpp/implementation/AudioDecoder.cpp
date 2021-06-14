@@ -29,7 +29,7 @@ bool AudioDecoder::init(AVFormatContext *in_ptr_fmt_ctx, int in_audio_index) {
     out_sample_fmt = AV_SAMPLE_FMT_S16;
     in_channel_count = p_audio_codec_ctx->channels;
     in_sample_rate = p_audio_codec_ctx->sample_rate;
-    out_sample_rate = 44100;
+    out_sample_rate = /*44100*/in_sample_rate;
     in_channel_layout = p_audio_codec_ctx->channel_layout;
     out_channel_layout = AV_CH_LAYOUT_STEREO;
     out_channel_count = av_get_channel_layout_nb_channels(out_channel_layout);
@@ -38,6 +38,7 @@ bool AudioDecoder::init(AVFormatContext *in_ptr_fmt_ctx, int in_audio_index) {
     swr_init(p_swr_ctx);
     p_audio_buffer = (unsigned char*) av_malloc(out_channel_count * out_sample_rate);
     media_time = p_fmt_ctx->duration * av_q2d(AV_TIME_BASE_Q);
+    LogUtil::logD(TAG, {"init: in sample fmt = ", std::to_string(in_sample_fmt), ", in sample rate = ", std::to_string(in_sample_rate)});
     return true;
     fail:
     release();
