@@ -23,8 +23,6 @@
 
         <activity android:name=".ui.MusicActivity" android:launchMode="singleTask" />
 
-        <activity android:name=".ui.VideoActivity" android:launchMode="singleTask" />
-
         <activity android:name=".ui.CameraActivity" android:launchMode="singleTask"
             android:screenOrientation="portrait" />
 

@@ -48,6 +48,12 @@ static void nStop(JNIEnv *env, jclass clazz, jlong pointer) {
     manager->setState(STATE_STOP);
 }
 
+static void nSetProgress(JNIEnv *env, jclass clazz, jlong pointer, jfloat ratio) {
+    auto* manager = reinterpret_cast<VideoManager *>(pointer);
+    manager->setSeekRatio(ratio);
+    manager->setState(STATE_SEEK);
+}
+
 static JNINativeMethod jni_methods[] = {
         {
                 "nativeConstruct",
@@ -73,6 +79,11 @@ static JNINativeMethod jni_methods[] = {
                 "nativeStop",
                 "(J)V",
                 (void *) nStop
+        },
+        {
+               "nativeSetProgress",
+               "(JF)V",
+                (void *) nSetProgress
         }
 };
 
@@ -141,6 +152,7 @@ void VideoManager::collectPacket(AVPacket* in_packet) {
         LogUtil::logD(TAG, {"collectPacket: end of stream"});
         flag_eof = true;
     } else if (JNI_OK != res) {
+        LogUtil::logD(TAG, {"collectPacket: not ok, res = ", std::to_string(res), ", current seek = ", std::to_string(seek_ratio)});
         av_packet_unref(in_packet);
     } else if (in_packet->stream_index == engine->audio_index) {
         audio_packet_queue->enqueue(*in_packet);
@@ -160,7 +172,18 @@ void VideoManager::dealAudioLoop(JNIEnv *env) {
             break;
         } else if (stateEqual(STATE_PAUSE)) {
             has_send_data = false;
+        } else if (stateEqual(STATE_SEEK)) {
+            if (!audio_held_by_seek) {
+                LogUtil::logD(TAG, {"dealAudioLoop: process seek"});
+                has_send_data = false;
+                pthread_mutex_lock(&wait_mutex);
+                block_enough_packet = false;
+                pthread_cond_signal(&wait_cond);
+                pthread_mutex_unlock(&wait_mutex);
+                audio_held_by_seek = true;
+            }
         } else if (stateEqual(STATE_PLAY) && !has_send_data) {
+            audio_held_by_seek = false;
             audio_packet = audio_packet_queue->dequeue();
             releaseBlockForEnoughPacket();
             if (audio_packet != nullptr) {
@@ -248,17 +271,34 @@ void VideoManager::dealMainLoop(JNIEnv *env) {
     LogUtil::logD(TAG, {"dealMainLoop: tid = ", std::to_string((int)syscall(SYS_gettid))});
     for (;;) {
         if (stateEqual(STATE_SEEK)) {
-            flag_eof = false;
+            if (audio_held_by_seek && video_held_by_seek) {
+                LogUtil::logD(TAG, {"dealMainLoop: process seek"});
+                flag_eof = false;
+                audio_player->setPauseState();
+                audio_packet_queue->clear();
+                video_packet_queue->clear();
+                last_main_clock = video_clock = main_clock = 0;
+                last_video_pts = 0;
+                engine->seekTo(seek_ratio);
+                avcodec_flush_buffers(audio_player->p_audio_decoder->p_audio_codec_ctx);
+                audio_player->clearBufferQueue();
+                avcodec_flush_buffers(video_decoder->p_codec_ctx);
+                setState(STATE_PLAY);
+                continue;
+            }
         } else if (stateEqual(STATE_STOP)) {
             goto quit;
         }
         //check this in every loop
-        if (stateMoreThanAndEqual(STATE_INITIALIZED) && stateLessThan(STATE_STOP) && !flag_eof) {
+        if (!stateEqual(STATE_SEEK) && stateMoreThanAndEqual(STATE_INITIALIZED)
+                && stateLessThan(STATE_STOP) && !flag_eof) {
             collectPacket(in_packet);
             if (hasEnoughPacket()) {
                 pthread_mutex_lock(&wait_mutex);
                 block_enough_packet = true;
+                LogUtil::logD(TAG, {"dealMainLoop: wait"});
                 pthread_cond_wait(&wait_cond, &wait_mutex);
+                LogUtil::logD(TAG, {"dealMainLoop: resume"});
                 pthread_mutex_unlock(&wait_mutex);
             }
         }
@@ -285,7 +325,17 @@ void VideoManager::dealVideoLoop(JNIEnv *env) {
                 pthread_mutex_unlock(&wait_mutex);
             }
             break;
+        } else if(stateEqual(STATE_SEEK)) {
+            if (!video_held_by_seek) {
+                LogUtil::logD(TAG, {"dealVideoLoop: process seek"});
+                pthread_mutex_lock(&wait_mutex);
+                block_enough_packet = false;
+                pthread_cond_signal(&wait_cond);
+                pthread_mutex_unlock(&wait_mutex);
+                video_held_by_seek = true;
+            }
         } else if (stateEqual(STATE_PLAY)) {
+            video_held_by_seek = false;
             packet = video_packet_queue->dequeue();
             releaseBlockForEnoughPacket();
             if (packet != nullptr) {
@@ -329,6 +379,7 @@ void VideoManager::dealVideoLoop(JNIEnv *env) {
 double VideoManager::getSleepTime(double time_diff) {
     //returned value should be within 3ms
     //music goes ahead
+    LogUtil::logD(TAG, {"getSleepTime: diff ", std::to_string(time_diff)});
     if (time_diff > THREE_MILL_SEC) {
         delay_time = delay_time * 2 / 3;
         if (delay_time < FORTY_MILL_SEC / 2) {
@@ -355,12 +406,21 @@ double VideoManager::getSleepTime(double time_diff) {
     //music goes too fast
     if (time_diff >= FIVE_SEC) {
         video_packet_queue->clear();
+        pthread_mutex_lock(&wait_mutex);
+        block_enough_packet = false;
+        pthread_cond_signal(&wait_cond);
+        pthread_mutex_unlock(&wait_mutex);
         delay_time = FORTY_MILL_SEC;
     } else if (time_diff <= -FIVE_SEC) {
         //video goes too fast
         audio_packet_queue->clear();
+        pthread_mutex_lock(&wait_mutex);
+        block_enough_packet = false;
+        pthread_cond_signal(&wait_cond);
+        pthread_mutex_unlock(&wait_mutex);
         delay_time = FORTY_MILL_SEC;
     }
+    LogUtil::logD(TAG, {"getSleepTime: diff sleep time ", std::to_string(delay_time)});
     return delay_time;
 }
 
@@ -403,6 +463,14 @@ bool VideoManager::registerSelf(JNIEnv *env) {
     return true;
     fail:
     return false;
+}
+
+void VideoManager::setSeekRatio(float ratio) {
+    if (ratio < 0)
+        ratio = 0;
+    else if (ratio > 1)
+        ratio = 1;
+    seek_ratio = ratio;
 }
 
 void VideoManager::setState(MediaState new_state) {

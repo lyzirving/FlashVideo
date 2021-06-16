@@ -50,9 +50,22 @@ public class FlashVideoPlayer {
         nativeStop(mNativePtr);
     }
 
+    public void setProgress(float ratio) {
+        if (ratio < 0 || ratio > 1) {
+            LogUtil.d(TAG, "setProgress: invalid ratio " + ratio);
+            return;
+        }
+        if (mNativePtr == INVALID_POINTER) {
+            LogUtil.d(TAG, "setProgress: invalid pointer");
+            return;
+        }
+        nativeSetProgress(mNativePtr, ratio);
+    }
+
     private static native long nativeConstruct();
     private static native void nativeInit(long ptr, String path, VideoListenerAdapter listener);
     private static native void nativePlay(long ptr);
     private static native void nativePause(long ptr);
+    private static native void nativeSetProgress(long ptr, float ratio);
     private static native void nativeStop(long ptr);
 }

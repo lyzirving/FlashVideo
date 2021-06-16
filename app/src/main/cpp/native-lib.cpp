@@ -1,7 +1,6 @@
 #include <jni.h>
 
 #include "JavaCallbackUtil.h"
-#include "VideoController.h"
 #include "AudioController.h"
 #include "VideoManager.h"
 #include "LogUtil.h"
@@ -15,9 +14,6 @@ JNIEXPORT int JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
         return JNI_ERR;
     }
     if (!AudioController::registerSelf(env)) {
-        return JNI_ERR;
-    }
-    if (!VideoController::registerSelf(env)) {
         return JNI_ERR;
     }
     if (!VideoManager::registerSelf(env)) {

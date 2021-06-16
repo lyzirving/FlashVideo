@@ -107,6 +107,14 @@ public class YuvVideoView extends GLSurfaceView implements GLSurfaceView.Rendere
         mVideoPlayer.init(path, getVideoListener());
     }
 
+    public void setProgress(float ratio) {
+        if (mVideoPlayer == null) {
+            LogUtil.e(TAG, "setProgress: video player is null");
+            return;
+        }
+        mVideoPlayer.setProgress(ratio);
+    }
+
     public void stop() {
         if (mVideoPlayer == null) {
             LogUtil.e(TAG, "stop: video player is null");
@@ -184,7 +192,6 @@ public class YuvVideoView extends GLSurfaceView implements GLSurfaceView.Rendere
                 @Override
                 public void onTickTime(double currentTime) {
                     super.onTickTime(currentTime);
-                    LogUtil.d(TAG, "onTickTime: " + currentTime);
                     if (mVideoViewListener != null) {
                         mVideoViewListener.onVideoTickTime(currentTime);
                     }

@@ -74,6 +74,7 @@ public:
     double getSleepTime(double time_diff);
     bool hasEnoughPacket();
     void setState(MediaState new_state);
+    void setSeekRatio(float ratio);
     bool stateEqual(MediaState in_state);
     bool stateMoreThanAndEqual(MediaState in_state);
     bool stateLessThan(MediaState in_state);
@@ -94,6 +95,12 @@ private:
     MediaState state;
 
     bool audio_is_quitting;
+    /**
+     * flag to show whether the audio looper and video looper is held by seek operation
+     * the two flags are used in seek to ensure the order
+     */
+    bool audio_held_by_seek, video_held_by_seek;
+    float seek_ratio;
     pthread_mutex_t wait_mutex;
     pthread_cond_t wait_cond;
 };
