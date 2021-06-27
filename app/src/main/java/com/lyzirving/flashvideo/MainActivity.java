@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.lyzirving.flashvideo.ui.CameraActivity;
+import com.lyzirving.flashvideo.ui.EditActivity;
 import com.lyzirving.flashvideo.ui.MusicActivity;
 import com.lyzirving.flashvideo.ui.VideoPlayerActivity;
 import com.lyzirving.flashvideo.util.ComponentUtil;
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "MainActivity";
     private static final int CODE_REQUEST_READ_WRITE_PERMISSION = 0x01;
 
-    private Button mBtnStartMusic, mBtnStartCamera, mBtnStartVideoPlayer;
+    private Button mBtnStartMusic, mBtnStartCamera, mBtnStartVideoPlayer, mBtnGoEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +80,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(VideoPlayerActivity.class);
                 break;
             }
+            case R.id.btn_start_edit_activity: {
+                startActivity(EditActivity.class);
+                break;
+            }
             default: {
                 break;
             }
@@ -95,16 +100,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBtnStartMusic.setEnabled(enable);
         mBtnStartCamera.setEnabled(enable);
         mBtnStartVideoPlayer.setEnabled(enable);
+        mBtnGoEditor.setEnabled(enable);
     }
 
     private void initView() {
         mBtnStartMusic = findViewById(R.id.btn_start_music);
         mBtnStartCamera = findViewById(R.id.btn_start_camera);
         mBtnStartVideoPlayer = findViewById(R.id.btn_start_video_player);
+        mBtnGoEditor = findViewById(R.id.btn_start_edit_activity);
 
         mBtnStartMusic.setOnClickListener(this);
         mBtnStartCamera.setOnClickListener(this);
         mBtnStartVideoPlayer.setOnClickListener(this);
+        mBtnGoEditor.setOnClickListener(this);
     }
 
     private void requestUserPermission() {

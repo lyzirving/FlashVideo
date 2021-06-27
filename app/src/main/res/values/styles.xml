@@ -7,4 +7,13 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <declare-styleable name="ProgressSelectBar">
+        <attr name="anchor_src" format="reference" />
+        <attr name="anchor_size" format="dimension" />
+        <attr name="bar_background" format="color" />
+        <attr name="bar_length" format="dimension" />
+        <attr name="bar_height" format="dimension" />
+        <attr name="bar_corner" format="dimension" />
+    </declare-styleable>
+
 </resources>

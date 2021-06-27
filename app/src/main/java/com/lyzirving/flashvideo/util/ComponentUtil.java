@@ -5,6 +5,8 @@ import android.content.Context;
 
 import java.util.Objects;
 
+import androidx.annotation.NonNull;
+
 /**
  * @author lyzirving
  */
@@ -35,6 +37,17 @@ public class ComponentUtil {
         mAppCtx = null;
     }
 
+    public int dp2px(float dp) {
+        float scale = mAppCtx.getResources().getDisplayMetrics().density;
+        return (int) (dp * scale + 0.5f);
+    }
+
+    public int px2dp(float pxValue) {
+        final float scale = mAppCtx.getResources().getDisplayMetrics().density;
+        return (int) (pxValue / scale + 0.5f);
+    }
+
+    @NonNull
     public Context getAppCtx() {
         return Objects.requireNonNull(mAppCtx);
     }

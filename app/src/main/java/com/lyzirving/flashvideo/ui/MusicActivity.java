@@ -31,7 +31,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     private static final int MSG_TIME_TICK = 2;
     private static final int MSG_STOP = 3;
     private static final String LOCAL_SRC_PATH = Environment.getExternalStorageDirectory().getAbsolutePath()
-            + File.separator + "0test" + File.separator + "source" + File.separator + "SpaceBound.mp3";
+            + File.separator + "0test" + File.separator + "source" + File.separator + "music/SpaceBound.mp3";
     private FlashAudio mFlashAudio;
 
     private VideoListenerAdapter mListener;

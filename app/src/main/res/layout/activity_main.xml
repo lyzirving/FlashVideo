@@ -40,4 +40,14 @@
         android:layout_marginStart="10dp"
         android:enabled="false" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_start_edit_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="@string/tip_go_editor"
+        app:layout_constraintStart_toStartOf="@+id/btn_start_music"
+        app:layout_constraintTop_toBottomOf="@+id/btn_start_music"
+        android:enabled="false" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

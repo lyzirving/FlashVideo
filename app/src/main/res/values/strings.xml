@@ -5,6 +5,8 @@
     <string name="tip_go_video">start video</string>
     <string name="tip_go_camera">start camera</string>
     <string name="tip_go_video_player">start video player</string>
+    <string name="tip_go_editor">start editor</string>
+
     <string name="tip_init">init</string>
     <string name="tip_play">play</string>
     <string name="tip_pause">pause</string>
@@ -34,4 +36,9 @@
     <string name="tip_stop_record">stop record</string>
 
     <string name="msg_default_time">00:00:00</string>
+
+    <string name="tip_metadata_time_unset">total time:</string>
+    <string name="tip_metadata_time">total time: %1$s</string>
+    <string name="tip_select_media">current select : %1$s</string>
+    <string name="tip_multiple_media">multiple media, needs to select one</string>
 </resources>

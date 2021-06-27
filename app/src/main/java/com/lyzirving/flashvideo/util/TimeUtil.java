@@ -8,6 +8,7 @@ import java.util.Locale;
  * @author lyzirving
  */
 public class TimeUtil {
+    private static final String TAG = "TimeUtil";
     private static final long ONE_SECOND = 1;
     private static final long ONE_MINUTE = 60 * ONE_SECOND;
     private static final long ONE_HOUR = 60 * ONE_MINUTE;
@@ -17,7 +18,7 @@ public class TimeUtil {
 
     public static String transferDoubleTimeToHourMinuteSecond(double timeInSeconds) {
         if (timeInSeconds <= 0) {
-            return "";
+            return "00:00:00";
         }
         double tmp = timeInSeconds;
         StringBuilder result = new StringBuilder();
