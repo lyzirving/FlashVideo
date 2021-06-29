@@ -41,4 +41,7 @@
     <string name="tip_metadata_time">total time: %1$s</string>
     <string name="tip_select_media">current select : %1$s</string>
     <string name="tip_multiple_media">multiple media, needs to select one</string>
+    <string name="tip_prepare_edit">prepare edit</string>
+    <string name="tip_start_edit">start edit</string>
+    <string name="tip_stop_edit">stop edit</string>
 </resources>

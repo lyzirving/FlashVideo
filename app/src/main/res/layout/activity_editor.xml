@@ -67,4 +67,36 @@
         android:textSize="16sp"
         android:textAllCaps="false" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_prepare_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tip_prepare_edit"
+        android:textSize="16sp"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toStartOf="@+id/tv_left_anchor"
+        app:layout_constraintTop_toBottomOf="@+id/tv_left_anchor" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_start_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tip_start_edit"
+        android:textSize="16sp"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toEndOf="@+id/btn_prepare_edit"
+        app:layout_constraintTop_toTopOf="@+id/btn_prepare_edit"
+        android:layout_marginStart="10dp"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_stop_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/tip_stop_edit"
+        android:textSize="16sp"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toEndOf="@+id/btn_start_edit"
+        app:layout_constraintTop_toTopOf="@+id/btn_start_edit"
+        android:layout_marginStart="10dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

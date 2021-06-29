@@ -48,7 +48,7 @@ public class ComponentUtil {
     }
 
     @NonNull
-    public Context getAppCtx() {
+    public Context ctx() {
         return Objects.requireNonNull(mAppCtx);
     }
 }

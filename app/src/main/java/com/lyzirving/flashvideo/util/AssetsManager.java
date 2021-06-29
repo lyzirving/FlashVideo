@@ -50,7 +50,7 @@ public class AssetsManager {
             @Override
             public void run() {
                 try {
-                    String[] fileNames = ComponentUtil.get().getAppCtx().getAssets().list(getAssetsTypeStr(type));
+                    String[] fileNames = ComponentUtil.get().ctx().getAssets().list(getAssetsTypeStr(type));
                     if (fileNames == null || fileNames.length == 0) {
                         LogUtil.e(TAG, "copyAssets: open failed, " + getAssetsTypeStr(type) + " is empty");
                         return;
@@ -120,7 +120,7 @@ public class AssetsManager {
         }
         LogUtil.d(TAG, "copyAssetsInner: prepare to copy" + dst.getAbsolutePath());
         try {
-            InputStream is = ComponentUtil.get().getAppCtx().getAssets().open(getAssetsTypeStr(type) + "/" + name);
+            InputStream is = ComponentUtil.get().ctx().getAssets().open(getAssetsTypeStr(type) + "/" + name);
             FileOutputStream fos = new FileOutputStream(dst);
             byte[] buffer = new byte[1024];
             int byteCount;
@@ -142,10 +142,10 @@ public class AssetsManager {
     private String getAppAssetsDirectory(AssetsType type) {
         switch (type) {
             case MUSIC: {
-                return ComponentUtil.get().getAppCtx().getExternalFilesDir(Environment.DIRECTORY_MUSIC).getAbsolutePath();
+                return FileUtil.MUSIC_CACHE_DIR;
             }
             case VIDEO: {
-                return ComponentUtil.get().getAppCtx().getExternalFilesDir(Environment.DIRECTORY_MOVIES).getAbsolutePath();
+                return FileUtil.MOVIE_CACHE_DIR;
             }
             default: {
                 return "";

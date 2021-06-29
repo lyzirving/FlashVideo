@@ -12,6 +12,7 @@ import com.lyzirving.flashvideo.R;
 import com.lyzirving.flashvideo.edit.MediaInfo;
 import com.lyzirving.flashvideo.edit.MusicEditOp;
 import com.lyzirving.flashvideo.edit.ProgressSelectBar;
+import com.lyzirving.flashvideo.edit.core.MediaEditor;
 import com.lyzirving.flashvideo.util.AssetsManager;
 import com.lyzirving.flashvideo.util.LogUtil;
 import com.lyzirving.flashvideo.util.TimeUtil;
@@ -40,6 +41,8 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
     private List<MediaInfo> mMediaInfoList;
     private MusicEditOp mMusicEditOp;
 
+    private MediaEditor mEditor;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +52,33 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onClick(View v) {}
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_prepare_edit: {
+                if (mEditor == null) {
+                    mEditor = new MediaEditor();
+                }
+                mEditor.prepare();
+                break;
+            }
+            case R.id.btn_start_edit: {
+                if (mEditor != null) {
+                    mEditor.startRecord();
+                }
+                break;
+            }
+            case R.id.btn_stop_edit: {
+                if (mEditor != null) {
+                    mEditor.quit();
+                    mEditor = null;
+                }
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
 
     @Override
     protected void onDestroy() {
@@ -132,12 +161,16 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
         mTvRightAnchor = findViewById(R.id.tv_right_anchor);
         mIvSrcImg = findViewById(R.id.iv_src_img);
         mProgressSelector = findViewById(R.id.progress_selector);
+        findViewById(R.id.btn_prepare_edit).setOnClickListener(this);
+        findViewById(R.id.btn_start_edit).setOnClickListener(this);
+        findViewById(R.id.btn_stop_edit).setOnClickListener(this);
 
         mHandler = new EditHandler(this);
         mProgressSelector.setListener(this);
     }
 
     private void initData() {
+        mIvSrcImg.setImageResource(R.drawable.one_piece_bg);
         mMediaInfoList = new ArrayList<>();
         AssetsManager.get().setAssetsListener(this);
         AssetsManager.get().copyAssets(AssetsManager.AssetsType.MUSIC);

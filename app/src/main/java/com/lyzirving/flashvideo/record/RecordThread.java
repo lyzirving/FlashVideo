@@ -5,7 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
-import com.lyzirving.flashvideo.opengl.EglCore;
+import com.lyzirving.flashvideo.opengl.core.EglCore;
 import com.lyzirving.flashvideo.opengl.filter.ShowFilter;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.opengl.util.VertexUtil;
@@ -111,7 +111,7 @@ public class RecordThread extends Thread {
         //avoid repeated handle-prepare call
         if (mEncoder == null) {
             mEncoder = new RecordEncoder();
-            boolean success = mEncoder.prepare(mViewWidth, mViewHeight, Objects.requireNonNull(ComponentUtil.get().getAppCtx().getExternalFilesDir(null)).getAbsolutePath() + "/video");
+            boolean success = mEncoder.prepare(mViewWidth, mViewHeight, Objects.requireNonNull(ComponentUtil.get().ctx().getExternalFilesDir(null)).getAbsolutePath() + "/video");
             if (!success) {
                 LogUtil.e(TAG, "handlePrepare: failed to init encoder");
                 handleQuit();
@@ -129,7 +129,7 @@ public class RecordThread extends Thread {
                 return;
             }
             mEglCore.makeCurrent();
-            mFilter = new ShowFilter(ComponentUtil.get().getAppCtx());
+            mFilter = new ShowFilter(ComponentUtil.get().ctx());
             mFilter.setVertexCoordinates(VertexUtil.get().getDefaultVertex());
             mFilter.setTextureCoordinates(TextureUtil.get().getDefaultTextureCoordinates());
             mFilter.setOutputSize(mViewWidth, mViewHeight);

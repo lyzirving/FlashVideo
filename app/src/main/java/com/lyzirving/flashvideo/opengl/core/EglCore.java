@@ -1,4 +1,4 @@
-package com.lyzirving.flashvideo.opengl;
+package com.lyzirving.flashvideo.opengl.core;
 
 import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
@@ -12,6 +12,9 @@ import android.view.Surface;
 
 import com.lyzirving.flashvideo.util.LogUtil;
 
+/**
+ * @author lyzirving
+ */
 public class EglCore {
     private static final String TAG = "EglCore";
 
@@ -64,14 +67,16 @@ public class EglCore {
         return true;
     }
 
-    public void makeCurrent() {
+    public boolean makeCurrent() {
         if (mEglDisplay == EGL14.EGL_NO_DISPLAY) {
-            // called makeCurrent() before create?
-            LogUtil.d(TAG, "makeCurrent: no display");
+            LogUtil.e(TAG, "makeCurrent: no display");
+            return false;
         }
         if (!EGL14.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext)) {
-            throw new RuntimeException("makeCurrent failed");
+            LogUtil.e(TAG, "makeCurrent: failed");
+            return false;
         }
+        return true;
     }
 
     /**
@@ -99,27 +104,28 @@ public class EglCore {
             LogUtil.e(TAG, "prepare: unable to initialize EGL14");
             return false;
         }
-        // Try to get GLES3 context, if requested.
+        //try to get GL ES 3 context, if requested.
         if ((flags & FLAG_TRY_GLES3) != 0) {
-            LogUtil.d(TAG, "prepare: try get GLES3 context");
+            LogUtil.d(TAG, "prepare: try get GL ES 3 context");
             EGLConfig config = getConfig(flags, GL_ES_3_VERSION);
             if (config != null) {
-                int[] gles3AttributeList = {
-                        EGL14.EGL_CONTEXT_CLIENT_VERSION, GL_ES_3_VERSION,
+                int[] glEs3AttributeList = {
+                        EGL14.EGL_CONTEXT_CLIENT_VERSION,
+                        GL_ES_3_VERSION,
                         EGL14.EGL_NONE
                 };
-                EGLContext context = EGL14.eglCreateContext(mEglDisplay, config, sharedContext, gles3AttributeList, 0);
+                EGLContext context = EGL14.eglCreateContext(mEglDisplay, config, sharedContext, glEs3AttributeList, 0);
                 if (EGL14.eglGetError() == EGL14.EGL_SUCCESS) {
-                    LogUtil.d(TAG, "get GLES3");
+                    LogUtil.d(TAG, "get GL ES 3");
                     mEglConfig = config;
                     mEglContext = context;
                     mGlVersion = GL_ES_3_VERSION;
                 }
             }
         }
-        //GLES 2 only, or GLES 3 attempt failed
+        //GL ES 2 only, or GL ES 3 attempt failed
         if (mEglContext == EGL14.EGL_NO_CONTEXT) {
-            LogUtil.d(TAG, "prepare: try to get GLES 2");
+            LogUtil.d(TAG, "prepare: try to get GL ES 2");
             EGLConfig config = getConfig(flags, GL_ES_2_VERSION);
             if (config == null) {
                 LogUtil.e(TAG, "prepare: unable to find a suitable EGLConfig");
@@ -132,6 +138,7 @@ public class EglCore {
             };
             EGLContext context = EGL14.eglCreateContext(mEglDisplay, config, sharedContext, egl2AttributeList, 0);
             if (!checkEglError()) {
+                LogUtil.e(TAG, "prepare: get EL ES 2 error");
                 return false;
             }
             mEglConfig = config;
