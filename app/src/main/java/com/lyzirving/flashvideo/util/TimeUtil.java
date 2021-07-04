@@ -9,10 +9,10 @@ import java.util.Locale;
  */
 public class TimeUtil {
     private static final String TAG = "TimeUtil";
-    private static final long ONE_SECOND = 1;
-    private static final long ONE_MINUTE = 60 * ONE_SECOND;
-    private static final long ONE_HOUR = 60 * ONE_MINUTE;
-    private static final long ONE_DAY = 24 * ONE_HOUR;
+    public static final long ONE_SECOND = 1;
+    public static final long ONE_MINUTE = 60 * ONE_SECOND;
+    public static final long ONE_HOUR = 60 * ONE_MINUTE;
+    public static final long ONE_DAY = 24 * ONE_HOUR;
 
     private static final int VALUE_TEN = 10;
 

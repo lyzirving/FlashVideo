@@ -175,6 +175,7 @@ public class AssetsManager {
             MediaInfo info = new MediaInfo(type);
             String durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
             info.name = name;
+            info.nameWithoutSuffix = name.contains(".") ? name.substring(0, name.indexOf(".")) : name;
             info.duration = (TextUtils.isEmpty(durationStr) ? 0 : Integer.parseInt(durationStr)) / 1000;
             info.path = path;
             LogUtil.d(TAG, "getMediaInfo: " + info);

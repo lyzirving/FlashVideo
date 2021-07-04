@@ -21,6 +21,10 @@ public class MediaInfo implements Parcelable {
      */
     public String path;
     public String name;
+    public String nameWithoutSuffix;
+
+    public int sampleRate, channelCount, channelMask, encoding;
+    public int maxBufferSize;
 
     public MediaInfo(AssetsManager.AssetsType type) {
         this.type = type;
@@ -32,8 +36,14 @@ public class MediaInfo implements Parcelable {
         return super.toString()
                 + "\ntype = " + type
                 + "\nname = " + name
+                + "\nnameWithoutSuffix = " + nameWithoutSuffix
                 + "\nduration = " + duration
-                + "\npath = " + path;
+                + "\npath = " + path
+                + "\nsample rate = " + sampleRate
+                + "\nchannel count = " + channelCount
+                + "\nchannel mask = " + channelMask
+                + "\nencoding = " + encoding
+                + "\nmax buffer size = " + maxBufferSize;
     }
 
     @Override
@@ -47,6 +57,12 @@ public class MediaInfo implements Parcelable {
         dest.writeLong(this.duration);
         dest.writeString(this.path);
         dest.writeString(this.name);
+        dest.writeString(this.nameWithoutSuffix);
+        dest.writeInt(this.sampleRate);
+        dest.writeInt(this.channelCount);
+        dest.writeInt(this.channelMask);
+        dest.writeInt(this.encoding);
+        dest.writeInt(this.maxBufferSize);
     }
 
     protected MediaInfo(Parcel in) {
@@ -55,6 +71,12 @@ public class MediaInfo implements Parcelable {
         this.duration = in.readLong();
         this.path = in.readString();
         this.name = in.readString();
+        this.nameWithoutSuffix = in.readString();
+        this.sampleRate = in.readInt();
+        this.channelCount = in.readInt();
+        this.channelMask = in.readInt();
+        this.encoding = in.readInt();
+        this.maxBufferSize = in.readInt();
     }
 
     public static final Creator<MediaInfo> CREATOR = new Creator<MediaInfo>() {

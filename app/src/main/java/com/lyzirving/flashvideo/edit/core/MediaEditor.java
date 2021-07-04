@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.lyzirving.flashvideo.edit.MusicEditOp;
 import com.lyzirving.flashvideo.opengl.core.EglCore;
 import com.lyzirving.flashvideo.opengl.core.MediaConfig;
 import com.lyzirving.flashvideo.opengl.filter.ShowFilter;
@@ -12,6 +13,7 @@ import com.lyzirving.flashvideo.opengl.util.VertexUtil;
 import com.lyzirving.flashvideo.util.ComponentUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
 
+import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.ref.SoftReference;
@@ -100,12 +102,12 @@ public class MediaEditor extends Thread {
         Objects.requireNonNull(mHandler, "handle is null").sendEmptyMessage(MSG_QUIT);
     }
 
-    public void startRecord() {
+    public void startRecord(MusicEditOp op) {
         if (mState != STATE_PREPARE) {
             LogUtil.d(TAG, "startRecord: invalid state: " + getStateStr(mState));
             return;
         }
-        Objects.requireNonNull(mHandler, "handle is null").sendEmptyMessage(MSG_START_RECORD);
+        Objects.requireNonNull(mHandler, "handle is null").obtainMessage(MSG_START_RECORD, op).sendToTarget();
     }
 
     private void editLoop() {
@@ -172,9 +174,25 @@ public class MediaEditor extends Thread {
         Objects.requireNonNull(Looper.myLooper(), "looper is null").quitSafely();
     }
 
-    private void handleRecord() {
+    private void handleRecord(MusicEditOp op) {
         LogUtil.d(TAG, "handleRecord");
         mState = STATE_RECORDING;
+        File musicSrc = new File((op.info.path));
+        if (!musicSrc.exists()) {
+            LogUtil.e(TAG, "handleRecord: " + op.info.path + " does not exist");
+            handleQuit();
+            return;
+        }
+        if (!MediaUtil.decodeMusicToPcm(op)) {
+            LogUtil.e(TAG, "handleRecord: failed to decode music to pcm");
+            handleQuit();
+            return;
+        }
+        if (!MediaUtil.decodePcmToWav(op)) {
+            LogUtil.e(TAG, "handleRecord: failed to decode pcm to wav");
+            handleQuit();
+            return;
+        }
     }
 
     private void release() {
@@ -219,7 +237,7 @@ public class MediaEditor extends Thread {
                         break;
                     }
                     case MSG_START_RECORD: {
-                        tmp.handleRecord();
+                        tmp.handleRecord((MusicEditOp) msg.obj);
                         break;
                     }
                     case MSG_QUIT: {

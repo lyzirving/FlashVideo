@@ -62,8 +62,8 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.btn_start_edit: {
-                if (mEditor != null) {
-                    mEditor.startRecord();
+                if (mEditor != null && mMusicEditOp != null) {
+                    mEditor.startRecord(mMusicEditOp);
                 }
                 break;
             }
