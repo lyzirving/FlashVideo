@@ -32,9 +32,6 @@ import javax.microedition.khronos.opengles.GL10;
 
 import androidx.annotation.IntDef;
 
-// TODO: 2021/5/21 camera filter needs to create a framebuffer and texture, when they are
-// TODO: 2021/5/21 filled with pixel data, they should be drawn onto the screen 
-
 /**
  * @author lyzirving
  */

@@ -24,7 +24,7 @@ public class MediaInfo implements Parcelable {
     public String nameWithoutSuffix;
 
     public int sampleRate, channelCount, channelMask, encoding;
-    public int maxBufferSize;
+    public int minBufferSize, maxBufferSize;
 
     public MediaInfo(AssetsManager.AssetsType type) {
         this.type = type;
@@ -43,6 +43,7 @@ public class MediaInfo implements Parcelable {
                 + "\nchannel count = " + channelCount
                 + "\nchannel mask = " + channelMask
                 + "\nencoding = " + encoding
+                + "\nmin buffer size = " + minBufferSize
                 + "\nmax buffer size = " + maxBufferSize;
     }
 
@@ -62,6 +63,7 @@ public class MediaInfo implements Parcelable {
         dest.writeInt(this.channelCount);
         dest.writeInt(this.channelMask);
         dest.writeInt(this.encoding);
+        dest.writeInt(this.minBufferSize);
         dest.writeInt(this.maxBufferSize);
     }
 
@@ -76,6 +78,7 @@ public class MediaInfo implements Parcelable {
         this.channelCount = in.readInt();
         this.channelMask = in.readInt();
         this.encoding = in.readInt();
+        this.minBufferSize = in.readInt();
         this.maxBufferSize = in.readInt();
     }
 

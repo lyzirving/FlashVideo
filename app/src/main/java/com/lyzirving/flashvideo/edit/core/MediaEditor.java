@@ -1,17 +1,23 @@
 package com.lyzirving.flashvideo.edit.core;
 
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.view.Surface;
 
-import com.lyzirving.flashvideo.edit.MusicEditOp;
+import com.lyzirving.flashvideo.edit.MediaEditOp;
+import com.lyzirving.flashvideo.edit.core.task.AudioToPcmTask;
+import com.lyzirving.flashvideo.edit.core.task.MixPicAndMusicTask;
+import com.lyzirving.flashvideo.edit.core.task.PcmToWavTask;
 import com.lyzirving.flashvideo.opengl.core.EglCore;
 import com.lyzirving.flashvideo.opengl.core.MediaConfig;
-import com.lyzirving.flashvideo.opengl.filter.ShowFilter;
-import com.lyzirving.flashvideo.opengl.util.TextureUtil;
-import com.lyzirving.flashvideo.opengl.util.VertexUtil;
-import com.lyzirving.flashvideo.util.ComponentUtil;
+import com.lyzirving.flashvideo.util.FileUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
+import com.lyzirving.flashvideo.util.TimeUtil;
 
 import java.io.File;
 import java.lang.annotation.Retention;
@@ -58,8 +64,9 @@ public class MediaEditor extends Thread {
     private final Object mLock = new Object();
     private MediaEditorHandler mHandler;
     private EglCore mEglCore;
-    private MediaEditEncoder mEncoder;
-    private ShowFilter mFilter;
+    private Surface mInputSurface;
+    private MediaCodec mVideoEncoder;
+    private MediaMuxer mMuxer;
 
     @EditorState
     private int mState;
@@ -102,7 +109,7 @@ public class MediaEditor extends Thread {
         Objects.requireNonNull(mHandler, "handle is null").sendEmptyMessage(MSG_QUIT);
     }
 
-    public void startRecord(MusicEditOp op) {
+    public void startRecord(MediaEditOp op) {
         if (mState != STATE_PREPARE) {
             LogUtil.d(TAG, "startRecord: invalid state: " + getStateStr(mState));
             return;
@@ -148,12 +155,11 @@ public class MediaEditor extends Thread {
             handleQuit();
             return;
         }
-        mEncoder = new MediaEditEncoder();
-        if (!mEncoder.prepare(MediaConfig.DEFAULT_VIDEO_WIDTH, MediaConfig.DEFAULT_VIDEO_HEIGHT)) {
+        if (!prepareEncoder(MediaConfig.DEFAULT_VIDEO_WIDTH, MediaConfig.DEFAULT_VIDEO_HEIGHT)) {
             handleQuit();
             return;
         }
-        if (!mEglCore.createWindowSurface(mEncoder.getInputSurface())) {
+        if (!mEglCore.createWindowSurface(mInputSurface)) {
             handleQuit();
             return;
         }
@@ -161,11 +167,6 @@ public class MediaEditor extends Thread {
             handleQuit();
             return;
         }
-        mFilter = new ShowFilter(ComponentUtil.get().ctx());
-        mFilter.setOutputSize(MediaConfig.DEFAULT_VIDEO_WIDTH, MediaConfig.DEFAULT_VIDEO_HEIGHT);
-        mFilter.setVertexCoordinates(VertexUtil.get().getDefaultVertex());
-        mFilter.setTextureCoordinates(TextureUtil.get().getDefaultTextureCoordinates());
-        mFilter.init();
         mState = STATE_PREPARE;
         LogUtil.d(TAG, "handlePrepare: success");
     }
@@ -174,7 +175,7 @@ public class MediaEditor extends Thread {
         Objects.requireNonNull(Looper.myLooper(), "looper is null").quitSafely();
     }
 
-    private void handleRecord(MusicEditOp op) {
+    private void handleRecord(MediaEditOp op) {
         LogUtil.d(TAG, "handleRecord");
         mState = STATE_RECORDING;
         File musicSrc = new File((op.info.path));
@@ -183,16 +184,55 @@ public class MediaEditor extends Thread {
             handleQuit();
             return;
         }
-        if (!MediaUtil.decodeMusicToPcm(op)) {
-            LogUtil.e(TAG, "handleRecord: failed to decode music to pcm");
+        op.pcmTmpDir = FileUtil.MUSIC_CACHE_DIR + "/" + op.info.nameWithoutSuffix + ".pcm";
+        AudioToPcmTask audioToPcm = new AudioToPcmTask(op);
+        if (!audioToPcm.run()) {
+            LogUtil.e(TAG, "handleRecord: failed to decode dst " + op.info.name + " to pcm");
+            FileUtil.get().deleteSingleFile(op.pcmTmpDir);
             handleQuit();
             return;
         }
-        if (!MediaUtil.decodePcmToWav(op)) {
-            LogUtil.e(TAG, "handleRecord: failed to decode pcm to wav");
+        op.wavTmpDir = FileUtil.MUSIC_CACHE_DIR + "/" + op.info.nameWithoutSuffix + ".wav";
+        PcmToWavTask pcmToWav = new PcmToWavTask(op.pcmTmpDir, op.wavTmpDir, op.info);
+        if (!pcmToWav.run()) {
+            LogUtil.e(TAG, "handleRecord: failed to transfer pcm to wav");
+            FileUtil.get().deleteSingleFile(op.pcmTmpDir);
+            FileUtil.get().deleteSingleFile(op.wavTmpDir);
             handleQuit();
             return;
         }
+        MixPicAndMusicTask mixTask = new MixPicAndMusicTask(op, mMuxer, mVideoEncoder, mEglCore);
+        mixTask.run();
+        FileUtil.get().deleteSingleFile(op.pcmTmpDir);
+        FileUtil.get().deleteSingleFile(op.wavTmpDir);
+        handleQuit();
+    }
+
+    private boolean prepareEncoder(int outputWidth, int outputHeight) {
+        MediaFormat format = MediaFormat.createVideoFormat(MediaConfig.MIME_TYPE_VIDEO_H264, outputWidth, outputHeight);
+        format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+        format.setInteger(MediaFormat.KEY_BIT_RATE, MediaConfig.BIT_RATE_2_MILLION);
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, MediaConfig.FRAME_RATE_30);
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, MediaConfig.I_FRAME_INTERVAL_2_SEC);
+        LogUtil.d(TAG, "prepareEncoder: output video format = " + format);
+        try {
+            File outputRoot = new File(FileUtil.MOVIE_CACHE_DIR);
+            if (!outputRoot.exists()) {
+                outputRoot.mkdirs();
+            }
+            mMuxer = new MediaMuxer(new File(outputRoot, TimeUtil.getCurrentTimeStr() + ".mp4").getAbsolutePath(),
+                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            mVideoEncoder = MediaCodec.createEncoderByType(MediaConfig.MIME_TYPE_VIDEO_H264);
+            mVideoEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            mInputSurface = mVideoEncoder.createInputSurface();
+            mVideoEncoder.start();
+        } catch (Exception e) {
+            LogUtil.e(TAG, "prepareEncoder: failed, exception msg = " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+        LogUtil.d(TAG, "prepareEncoder: succeed");
+        return true;
     }
 
     private void release() {
@@ -201,18 +241,44 @@ public class MediaEditor extends Thread {
             mHandler.removeCallbacksAndMessages(null);
             mHandler = null;
         }
-        if (mFilter != null) {
-            mFilter.release();
-            mFilter = null;
-        }
         if (mEglCore != null) {
             mEglCore.release();
             mEglCore = null;
         }
-        if (mEncoder != null) {
-            mEncoder.release();
-            mEncoder = null;
+        try {
+            if (mInputSurface != null) {
+                mInputSurface.release();
+            }
+        } catch (Exception e) {
+            LogUtil.i(TAG, "release: input surface exception = " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            mInputSurface = null;
         }
+
+        try {
+            if (mVideoEncoder != null) {
+                mVideoEncoder.stop();
+                mVideoEncoder.release();
+            }
+        } catch (Exception e) {
+            LogUtil.i(TAG, "release: video encoder exception = " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            mVideoEncoder = null;
+        }
+
+        try {
+            if (mMuxer != null) {
+                mMuxer.release();
+            }
+        } catch (Exception e) {
+            LogUtil.i(TAG, "release: media muxer exception = " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            mMuxer = null;
+        }
+
         mState = STATE_QUIT;
     }
 
@@ -237,7 +303,7 @@ public class MediaEditor extends Thread {
                         break;
                     }
                     case MSG_START_RECORD: {
-                        tmp.handleRecord((MusicEditOp) msg.obj);
+                        tmp.handleRecord((MediaEditOp) msg.obj);
                         break;
                     }
                     case MSG_QUIT: {

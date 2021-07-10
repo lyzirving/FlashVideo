@@ -2,6 +2,8 @@ package com.lyzirving.flashvideo.util;
 
 import android.os.Environment;
 
+import java.io.File;
+
 /**
  * @author lyzirving
  */
@@ -23,5 +25,21 @@ public class FileUtil {
             }
         }
         return sInstance;
+    }
+
+    public boolean deleteSingleFile(String fileName) {
+        File file = new File(fileName);
+        if (file.exists() && file.isFile()) {
+            if (file.delete()) {
+                LogUtil.i(TAG, "deleteSingleFile: succeed to delete " + fileName);
+                return true;
+            } else {
+                LogUtil.i(TAG, "deleteSingleFile: failed to delete " + fileName);
+                return false;
+            }
+        } else {
+            LogUtil.i(TAG, "deleteSingleFile: failed to delete " + fileName + " because the file does not exist");
+            return false;
+        }
     }
 }

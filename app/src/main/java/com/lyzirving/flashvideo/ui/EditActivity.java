@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import com.lyzirving.flashvideo.R;
 import com.lyzirving.flashvideo.edit.MediaInfo;
-import com.lyzirving.flashvideo.edit.MusicEditOp;
+import com.lyzirving.flashvideo.edit.MediaEditOp;
 import com.lyzirving.flashvideo.edit.ProgressSelectBar;
 import com.lyzirving.flashvideo.edit.core.MediaEditor;
 import com.lyzirving.flashvideo.util.AssetsManager;
@@ -39,7 +39,7 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
     private EditHandler mHandler;
 
     private List<MediaInfo> mMediaInfoList;
-    private MusicEditOp mMusicEditOp;
+    private MediaEditOp mMediaEditOp;
 
     private MediaEditor mEditor;
 
@@ -62,8 +62,8 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.btn_start_edit: {
-                if (mEditor != null && mMusicEditOp != null) {
-                    mEditor.startRecord(mMusicEditOp);
+                if (mEditor != null && mMediaEditOp != null) {
+                    mEditor.startRecord(mMediaEditOp);
                 }
                 break;
             }
@@ -96,24 +96,24 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onLeftAnchorUp(float leftRatio) {
-        if (mMusicEditOp == null) {
+        if (mMediaEditOp == null) {
             LogUtil.d(TAG, "onLeftAnchorUp: no select op");
             return;
         }
         LogUtil.d(TAG, "onLeftAnchorUp: " + leftRatio);
-        mMusicEditOp.left = leftRatio;
-        mTvLeftAnchor.setText(TimeUtil.transferDoubleTimeToHourMinuteSecond(mMusicEditOp.info.duration * leftRatio));
+        mMediaEditOp.leftAnchor = leftRatio;
+        mTvLeftAnchor.setText(TimeUtil.transferDoubleTimeToHourMinuteSecond(mMediaEditOp.info.duration * leftRatio));
     }
 
     @Override
     public void onRightAnchorUp(float rightRatio) {
-        if (mMusicEditOp == null) {
+        if (mMediaEditOp == null) {
             LogUtil.d(TAG, "onRightAnchorUp: no select op");
             return;
         }
         LogUtil.d(TAG, "onRightAnchorUp: " + rightRatio);
-        mMusicEditOp.right = rightRatio;
-        mTvRightAnchor.setText(TimeUtil.transferDoubleTimeToHourMinuteSecond(mMusicEditOp.info.duration * rightRatio));
+        mMediaEditOp.rightAnchor = rightRatio;
+        mTvRightAnchor.setText(TimeUtil.transferDoubleTimeToHourMinuteSecond(mMediaEditOp.info.duration * rightRatio));
     }
 
     @Override
@@ -143,13 +143,13 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
                 mTvCurrentSelect.setText(String.format(getString(R.string.tip_select_media), info.name));
                 mTvLeftAnchor.setText(TimeUtil.transferDoubleTimeToHourMinuteSecond(0));
                 mTvRightAnchor.setText(TimeUtil.transferDoubleTimeToHourMinuteSecond(info.duration));
-                mMusicEditOp = new MusicEditOp();
-                mMusicEditOp.info = info;
+                mMediaEditOp = new MediaEditOp();
+                mMediaEditOp.info = info;
                 mProgressSelector.active(true);
             } else {
                 mTvCurrentSelect.setText(getString(R.string.tip_multiple_media));
                 mProgressSelector.active(false);
-                mMusicEditOp = null;
+                mMediaEditOp = null;
             }
         }
     }

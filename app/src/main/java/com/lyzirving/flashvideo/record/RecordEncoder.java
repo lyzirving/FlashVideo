@@ -146,8 +146,6 @@ public class RecordEncoder {
             mEncoder = null;
         }
         if (mMuxer != null) {
-            // TODO: stop() throws an exception if you haven't fed it any data.  Keep track
-            //       of frames submitted, and don't call stop() if we haven't written anything.
             mMuxer.stop();
             mMuxer.release();
             mMuxer = null;

@@ -84,6 +84,11 @@ public class AssetsManager {
         mListener = null;
     }
 
+    public void executeAsyncTask(Runnable task) {
+        buildThreadPoolIfNeed();
+        mCachedThreadPool.execute(task);
+    }
+
     public void setAssetsListener(AssetsListener listener) {
         mListener = listener;
     }

@@ -15,6 +15,7 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  * @author lyzirving
  */
 public class MediaConfig {
+    public static final int BUFFER_WAIT_TIME_US = 10_1000;
     public static final String MUSIC_PREFIX = "audio/";
     public static final String VIDEO_PREFIX = "video/";
     public static final String MIME_TYPE_VIDEO_H264 = "video/avc";
@@ -26,18 +27,20 @@ public class MediaConfig {
 
     public static final int I_FRAME_INTERVAL_2_SEC = 2;
 
-    public static final int BIT_RATE_64_MILLION = 64000000;
-    public static final int BIT_RATE_2_MILLION = 2000000;
+    public static final int DEFAULT_MAX_INPUT_SIZE = 65536;
+
+    public static final int BIT_RATE_64_KBPS = 64 * 1024;
+    public static final int BIT_RATE_2_MILLION = 2_000_000;
 
     public static final int DEFAULT_SAMPLE_RATE = 44100;
     public static final int DEFAULT_CHANNEL_COUNT = 2;
 
-    public static final int TYPE_INVALID = 0;
+    public static final int MEDIA_INVALID = -1;
     public static final int TYPE_MUSIC = 1;
     public static final int TYPE_VIDEO = 2;
     public static final int TYPE_SUBTITLE = 3;
 
-    @IntDef({TYPE_INVALID, TYPE_MUSIC, TYPE_VIDEO, TYPE_SUBTITLE})
+    @IntDef({MEDIA_INVALID, TYPE_MUSIC, TYPE_VIDEO, TYPE_SUBTITLE})
     @Retention(CLASS)
     @Target({PARAMETER,METHOD,LOCAL_VARIABLE,FIELD})
     public @interface TYPE {}
