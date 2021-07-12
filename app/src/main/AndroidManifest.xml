@@ -31,6 +31,8 @@
 
         <activity android:name=".ui.EditActivity" android:launchMode="singleTask" />
 
+        <activity android:name=".ui.FaceDetectActivity" android:launchMode="singleTask" />
+
     </application>
 
 </manifest>

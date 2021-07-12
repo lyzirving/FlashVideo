@@ -57,8 +57,9 @@ public class AssetsManager {
                     }
                     List<MediaInfo> infos = new ArrayList<>();
                     MediaInfo tmp;
+                    boolean isMedia = (type == AssetsType.MUSIC || type == AssetsType.VIDEO);
                     for (int i = 0; i < fileNames.length; i++) {
-                        if (copyAssetsInner(type, fileNames[i])) {
+                        if (copyAssetsInner(type, fileNames[i]) && isMedia) {
                             tmp = getMediaInfo(type, fileNames[i]);
                             if (tmp != null) {
                                 infos.add(tmp);
@@ -152,6 +153,9 @@ public class AssetsManager {
             case VIDEO: {
                 return FileUtil.MOVIE_CACHE_DIR;
             }
+            case CLASSIFIER: {
+                return FileUtil.DOC_CACHE_DIR;
+            }
             default: {
                 return "";
             }
@@ -165,6 +169,9 @@ public class AssetsManager {
             }
             case VIDEO: {
                 return "video";
+            }
+            case CLASSIFIER: {
+                return "classifier";
             }
             default: {
                 return "";
@@ -200,7 +207,11 @@ public class AssetsManager {
         /**
          * video source
          */
-        VIDEO;
+        VIDEO,
+        /**
+         * classifier
+         */
+        CLASSIFIER;
     }
 
     public interface AssetsListener {

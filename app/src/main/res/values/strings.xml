@@ -6,6 +6,7 @@
     <string name="tip_go_camera">start camera</string>
     <string name="tip_go_video_player">start video player</string>
     <string name="tip_go_editor">start editor</string>
+    <string name="tip_go_face_detect">start face detect</string>
 
     <string name="tip_init">init</string>
     <string name="tip_play">play</string>
@@ -44,4 +45,7 @@
     <string name="tip_prepare_edit">prepare edit</string>
     <string name="tip_start_edit">start edit</string>
     <string name="tip_stop_edit">stop edit</string>
+
+    <string name="tip_init_face_detector">Init face detector</string>
+    <string name="tip_detect">detect face</string>
 </resources>

@@ -13,7 +13,9 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags "-fexceptions"
+                cppFlags "-std=c++11", "-frtti", "-fexceptions"
+                /*fix: dlopen failed: library "libc++_shared.so" not found*/
+                arguments "-DANDROID_STL=c++_shared"
             }
             ndk {
                 abiFilters 'armeabi-v7a', 'arm64-v8a'

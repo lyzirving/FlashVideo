@@ -11,6 +11,7 @@ public class FileUtil {
     private static final String TAG = "FileUtil";
     public static final String MOVIE_CACHE_DIR = ComponentUtil.get().ctx().getExternalFilesDir(Environment.DIRECTORY_MOVIES).getAbsolutePath();
     public static final String MUSIC_CACHE_DIR = ComponentUtil.get().ctx().getExternalFilesDir(Environment.DIRECTORY_MUSIC).getAbsolutePath();
+    public static final String DOC_CACHE_DIR = ComponentUtil.get().ctx().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath();
 
     private static volatile FileUtil sInstance;
 

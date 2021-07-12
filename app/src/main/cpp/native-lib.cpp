@@ -3,6 +3,7 @@
 #include "JavaCallbackUtil.h"
 #include "AudioController.h"
 #include "VideoManager.h"
+#include "FaceDetect.h"
 #include "LogUtil.h"
 
 #define TAG "native-lib"
@@ -17,6 +18,9 @@ JNIEXPORT int JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
         return JNI_ERR;
     }
     if (!VideoManager::registerSelf(env)) {
+        return JNI_ERR;
+    }
+    if (!FaceDetect::registerSelf(env)) {
         return JNI_ERR;
     }
     return JNI_VERSION_1_6;

@@ -2,11 +2,13 @@ cmake_minimum_required(VERSION 3.4.1)
 
 set(FFMPEG_HEAD ${CMAKE_SOURCE_DIR}/ffmpeghead)
 set(SOUND_TOUCH_HEAD ${CMAKE_SOURCE_DIR}/soundtouchhead)
+set(OPENCV_HEAD ${CMAKE_SOURCE_DIR}/opencvhead)
 set(HEAR_DIR ${CMAKE_SOURCE_DIR}/include)
 set(SHARED_DIR ${CMAKE_SOURCE_DIR}/shared)
 
 include_directories(${FFMPEG_HEAD})
 include_directories(${SOUND_TOUCH_HEAD})
+include_directories(${OPENCV_HEAD})
 include_directories(${HEAR_DIR})
 
 add_library(
@@ -100,6 +102,19 @@ set_target_properties(
         # value
         ${SHARED_DIR}/${ANDROID_ABI}/libswscale-5.so)
 
+add_library(
+        opencv_java4
+        SHARED
+        IMPORTED)
+
+set_target_properties(
+        # lib name
+        opencv_java4
+        # property
+        PROPERTIES IMPORTED_LOCATION
+        # value
+        ${SHARED_DIR}/${ANDROID_ABI}/libopencv_java4.so)
+
 aux_source_directory(${CMAKE_SOURCE_DIR}/implementation CPP_DIR)
 aux_source_directory(${CMAKE_SOURCE_DIR}/soundtouch SOUND_TOUCH_CPP_DIR)
 
@@ -120,6 +135,7 @@ find_library(# name of the lib
 target_link_libraries( # Specifies the target library.
                        native-lib
                        # Links the target library to the libraries below
+                       jnigraphics
                        avcodec
                        avdevice
                        avfilter
@@ -127,5 +143,6 @@ target_link_libraries( # Specifies the target library.
                        avutil
                        swresample
                        swscale
+                       opencv_java4
                        ${lib-log}
                        ${lib-opensl})
