@@ -27,7 +27,7 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
         PixelCopy.OnPixelCopyFinishedListener {
     private static final String TAG = "FaceDetectActivity";
 
-    private ImageView mIvImg;
+    private ImageView mIvSrc;
     private FaceDetector mFaceDetector;
     private Bitmap mBmpInView;
     private Handler mMainHandler;
@@ -70,7 +70,7 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
                     BitmapFactory.decodeResource(getResources(), R.drawable.multiplefaces, op);
                     mBmpInView = Bitmap.createBitmap(op.outWidth, op.outHeight, op.outConfig);
                 }
-                BitmapUtil.getBitmapFromView(getWindow(), mIvImg, mBmpInView, this, mMainHandler);
+                BitmapUtil.getBitmapFromView(getWindow(), mIvSrc, mBmpInView, this, mMainHandler);
                 break;
             }
             default: {
@@ -88,8 +88,7 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void initView() {
-        mIvImg = findViewById(R.id.iv_img);
-
+        mIvSrc = findViewById(R.id.iv_src);
         findViewById(R.id.btn_init_face_detector).setOnClickListener(this);
         findViewById(R.id.btn_detect).setOnClickListener(this);
     }

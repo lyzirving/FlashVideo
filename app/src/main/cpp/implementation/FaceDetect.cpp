@@ -2,11 +2,8 @@
 #include "LogUtil.h"
 #include "JavaCallbackUtil.h"
 
-#include <android/bitmap.h>
-
 #define TAG "FaceDetect"
 #define JAVA_CLASS "com/lyzirving/flashvideo/face/FaceDetector"
-#define FACE_DETECT_ADAPTER_CLASS "com/lyzirving/flashvideo/face/FaceDetectAdapter"
 
 static JavaVM* sPtrGlobJvm = nullptr;
 static std::map<jlong, jobject> sGlobFaceDetectAdapter;
@@ -20,10 +17,12 @@ static jlong nConstruct(JNIEnv *env, jclass clazz) {
 
 static jboolean nDetect(JNIEnv *env, jclass clazz, jlong ptr, jobject bitmap) {
     auto* ptrDetect = reinterpret_cast<FaceDetect *>(ptr);
-    if (!ptrDetect->bitmap2Matrix(env, bitmap)) {
+    cv::Mat mat;
+    if (!ImgUtil::bitmap2Mat(env, bitmap, mat)) {
         LogUtil::logI(TAG, {"nDetect: failed to convert bitmap to matrix"});
         return false;
     }
+    ptrDetect->setImgMat(mat);
     return ptrDetect->detect();
 }
 
@@ -65,35 +64,6 @@ static JNINativeMethod jni_methods[] = {
                 (void *) nDetect
         },
 };
-
-bool FaceDetect::bitmap2Matrix(JNIEnv* env, jobject bmp) {
-    AndroidBitmapInfo bitmapInfo;
-    if (AndroidBitmap_getInfo(env, bmp, &bitmapInfo) < 0) {
-        LogUtil::logI(TAG, {"bitmap2Matrix: failed to get bitmap info"});
-        return false;
-    }
-    bool supportFmt = bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888 || bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGB_565;
-    if (!supportFmt) {
-        LogUtil::logI(TAG, {"bitmap2Matrix: invalid bitmap format"});
-        return false;
-    }
-    void* bitmapPixels;
-    if (AndroidBitmap_lockPixels(env, bmp, &bitmapPixels) < 0 || bitmapPixels == nullptr) {
-        LogUtil::logI(TAG, {"bitmap2Matrix: failed to lock bitmap pixel"});
-        return false;
-    }
-    if (bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_8888) {
-        mPtrImgMat = new cv::Mat(bitmapInfo.height, bitmapInfo.width, CV_8UC4, bitmapPixels);
-    } else {
-        mPtrImgMat = new cv::Mat(bitmapInfo.height, bitmapInfo.width, CV_8UC2, bitmapPixels);
-        cv::cvtColor(*mPtrImgMat, *mPtrImgMat, cv::COLOR_BGR5652RGB);
-    }
-    //convert RGB to BGR
-    cv::cvtColor(*mPtrImgMat, *mPtrImgMat,cv::COLOR_RGB2BGR);
-    AndroidBitmap_unlockPixels(env, bmp);
-    LogUtil::logI(TAG, {"bitmap2Matrix: succeed to copy bmp to matrix"});
-    return true;
-}
 
 void FaceDetect::callAdapterFail(jobject &adapter) {
     if (adapter == nullptr) {
@@ -151,7 +121,7 @@ bool FaceDetect::detect() {
         return false;
     }
     cv::Mat gray;
-    matrix2Gray(*mPtrImgMat, gray);
+    ImgUtil::mat2Gray(*mPtrImgMat, gray);
     std::vector<cv::Rect> faces;
     mPtrClassifier->detectMultiScale(
             gray, faces,
@@ -161,19 +131,6 @@ bool FaceDetect::detect() {
     callAdapterDetectSuccess(adapter, faces);
     LogUtil::logI(TAG, {"detect: result face = ", std::to_string(faces.size())});
     return true;
-}
-
-void FaceDetect::matrix2Gray(cv::Mat &src, cv::Mat &dst) {
-    if (src.channels() == 3) {
-        LogUtil::logI(TAG, {"matrix2Gray: COLOR_BGR2GRAY"});
-        cvtColor(src, dst, cv::COLOR_BGR2GRAY);
-    } else if (src.channels() == 4) {
-        LogUtil::logI(TAG, {"matrix2Gray: COLOR_BGRA2GRAY"});
-        cvtColor(src, dst, cv::COLOR_BGRA2GRAY);
-    } else {
-        LogUtil::logI(TAG, {"matrix2Gray: no transform"});
-        dst = src;
-    }
 }
 
 bool FaceDetect::initClassifier() {
@@ -233,4 +190,8 @@ void FaceDetect::setClassifierPath(char *path) {
     }
     mClassifierPath = static_cast<char *>(malloc(std::strlen(path) + 1));
     std:strcpy(mClassifierPath, path);
+}
+
+void FaceDetect::setImgMat(cv::Mat &mat) {
+    mPtrImgMat = new cv::Mat(mat);
 }

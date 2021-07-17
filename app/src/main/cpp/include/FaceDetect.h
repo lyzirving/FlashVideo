@@ -1,8 +1,7 @@
 #ifndef FLASHVIDEO_FACEDETECT_H
 #define FLASHVIDEO_FACEDETECT_H
 
-#include <jni.h>
-#include <opencv2/opencv.hpp>
+#include "ImgUtil.h"
 
 class FaceDetect {
 public:
@@ -18,13 +17,11 @@ public:
         release();
     }
 
-    bool bitmap2Matrix(JNIEnv* env, jobject bmp);
     bool detect();
     bool initClassifier();
-    void matrix2Gray(cv::Mat &src, cv::Mat &dst);
     void release();
     void setClassifierPath(char* path);
-
+    void setImgMat(cv::Mat& mat);
 private:
     char* mClassifierPath;
     cv::CascadeClassifier* mPtrClassifier;

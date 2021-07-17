@@ -48,4 +48,5 @@
 
     <string name="tip_init_face_detector">Init face detector</string>
     <string name="tip_detect">detect face</string>
+    <string name="tip_adapt_contrast">adapt contrast</string>
 </resources>
