@@ -61,4 +61,14 @@
         android:layout_marginStart="10dp"
         android:enabled="false" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_start_img_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="@string/tip_go_img_edit"
+        app:layout_constraintStart_toStartOf="@+id/btn_start_edit_activity"
+        app:layout_constraintTop_toBottomOf="@+id/btn_start_edit_activity"
+        android:enabled="false" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

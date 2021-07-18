@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/layout_adjust_beauty_root"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_adjust_panel"
+    android:visibility="gone"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:id="@+id/rl_contrast"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginTop="5dp">
+
+        <TextView
+            android:id="@+id/tv_contrast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:textAllCaps="false"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:text="@string/tip_contrast"
+            tools:ignore="SmallSp" />
+
+        <SeekBar
+            android:id="@+id/seek_bar_contrast"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/tv_contrast"
+            android:layout_centerVertical="true"
+            android:max="100"
+            android:maxHeight="4dp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_sharpen"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@+id/rl_contrast"
+        app:layout_constraintEnd_toEndOf="@id/rl_contrast"
+        app:layout_constraintTop_toBottomOf="@+id/rl_contrast"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:id="@+id/tv_sharpen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:textAllCaps="false"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:text="@string/tip_sharpen"
+            tools:ignore="SmallSp" />
+
+        <SeekBar
+            android:id="@+id/seek_bar_sharpen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/tv_sharpen"
+            android:layout_centerVertical="true"
+            android:max="100"
+            android:maxHeight="4dp" />
+
+    </RelativeLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

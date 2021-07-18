@@ -50,7 +50,7 @@ public class MixPicAndMusicTask implements MediaTask {
             }
         });
         BitmapFilter filter = new BitmapFilter(ComponentUtil.get().ctx(), mOp.picResId);
-        filter.prepareBeforeInit(ComponentUtil.get().ctx(), MediaConfig.DEFAULT_VIDEO_WIDTH, MediaConfig.DEFAULT_VIDEO_HEIGHT);
+        filter.setOutputSize(MediaConfig.DEFAULT_VIDEO_WIDTH, MediaConfig.DEFAULT_VIDEO_HEIGHT);
         filter.init();
 
         long durationPerFrameUs = 1000 * 1000 / MediaConfig.FRAME_RATE_30;

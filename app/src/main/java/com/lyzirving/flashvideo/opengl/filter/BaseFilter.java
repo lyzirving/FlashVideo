@@ -21,10 +21,12 @@ import androidx.annotation.RawRes;
 public class BaseFilter implements IFilter {
     protected static final int DEFAULT_VERTEX_COUNT = 6;
     protected static final int SCREEN_FRAME_BUFFER_ID = 0;
+    protected static final int MIN_PROGRESS = 0;
+    protected static final int MAX_PROGRESS = 100;
 
     protected int mProgram;
     protected String mVertexShader, mFragmentShader;
-    protected int mOutputWidth, mOutputHeight;
+    protected int mOutputWidth, mOutputHeight, mTextureWidth, mTextureHeight;
     protected int mVertexPosHandler, mTextureCoordinateHandler, mTextureSamplerHandler;
     protected int[] mTextureId, mFrameBufferId;
     protected FloatBuffer mVertexBuffer, mTexCoordinatesBuffer;
@@ -48,6 +50,10 @@ public class BaseFilter implements IFilter {
         mTextureCoordinates = TextureUtil.get().getDefaultTextureCoordinates();
     }
 
+    public void adjustProgress(int progress) {
+        //implementation in subclass
+    }
+
     public void adjust(float value) {
         //implementation in subclass
     }
@@ -65,6 +71,7 @@ public class BaseFilter implements IFilter {
     @Override
     final public void init() {
         if (!mIsInit) {
+            preInit();
             mTextureId = new int[]{TextureUtil.ID_NO_TEXTURE};
             mFrameBufferId = new int[]{TextureUtil.ID_NO_FRAME_BUFFER};
             mProgram = FilterUtil.get().createProgram(mVertexShader, mFragmentShader);
@@ -84,6 +91,8 @@ public class BaseFilter implements IFilter {
 
     protected void onInit() {}
 
+    protected void preInit() {}
+
     @Override
     public void release() {
         if (mVertexBuffer != null) {
@@ -98,7 +107,7 @@ public class BaseFilter implements IFilter {
         }
     }
 
-    protected void runPreDraw() {
+    public void runPreDraw() {
         synchronized (mRunPreDraw) {
             while (!mRunPreDraw.isEmpty()) {
                 mRunPreDraw.poll().run();
@@ -120,11 +129,13 @@ public class BaseFilter implements IFilter {
     public void setOutputSize(int width, int height) {
         mOutputWidth = width;
         mOutputHeight = height;
+        mTextureWidth = width;
+        mTextureHeight = height;
     }
 
     protected void initFloatBuffer() {
         if (mVertexCoordinates == null) {
-            throw new RuntimeException("vertex coordinates are null");
+            mVertexCoordinates = VertexUtil.get().getDefaultVertex();
         }
         ByteBuffer vertexByteBuffer = ByteBuffer.allocateDirect(mVertexCoordinates.length * 4);
         vertexByteBuffer.order(ByteOrder.nativeOrder());
@@ -133,7 +144,7 @@ public class BaseFilter implements IFilter {
         mVertexBuffer.position(0);
 
         if (mTextureCoordinates == null) {
-            throw new RuntimeException("texture coordinates are null");
+            mTextureCoordinates = TextureUtil.get().getDefaultTextureCoordinates();
         }
         ByteBuffer textureCoordinateByteBuffer = ByteBuffer.allocateDirect(mTextureCoordinates.length * 4);
         textureCoordinateByteBuffer.order(ByteOrder.nativeOrder());
@@ -151,14 +162,14 @@ public class BaseFilter implements IFilter {
     }
 
     protected void initTexture() {
-        if (mOutputWidth == 0 || mOutputHeight == 0) {
+        if (mTextureWidth == 0 || mTextureHeight == 0) {
             throw new RuntimeException("initTexture: output size is invalid");
         }
         GLES20.glGenTextures(1, mTextureId, 0);
         for (int i = 0; i < 1; i++) {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[i]);
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, mOutputWidth,
-                    mOutputHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, mTextureWidth,
+                    mTextureHeight, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
             GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);

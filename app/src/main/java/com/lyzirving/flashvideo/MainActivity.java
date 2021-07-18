@@ -15,6 +15,7 @@ import android.widget.Button;
 import com.lyzirving.flashvideo.ui.CameraActivity;
 import com.lyzirving.flashvideo.ui.EditActivity;
 import com.lyzirving.flashvideo.ui.FaceDetectActivity;
+import com.lyzirving.flashvideo.ui.ImgEditActivity;
 import com.lyzirving.flashvideo.ui.MusicActivity;
 import com.lyzirving.flashvideo.ui.VideoPlayerActivity;
 import com.lyzirving.flashvideo.util.ComponentUtil;
@@ -31,7 +32,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "MainActivity";
     private static final int CODE_REQUEST_READ_WRITE_PERMISSION = 0x01;
 
-    private Button mBtnStartMusic, mBtnStartCamera, mBtnStartVideoPlayer, mBtnGoEditor, mBtnFaceDetect;
+    private Button mBtnStartMusic, mBtnStartCamera, mBtnStartVideoPlayer, mBtnGoEditor, mBtnFaceDetect,
+            mBtnStartImgEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +91,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(FaceDetectActivity.class);
                 break;
             }
+            case R.id.btn_start_img_edit: {
+                startActivity(ImgEditActivity.class);
+                break;
+            }
             default: {
                 break;
             }
@@ -107,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBtnStartVideoPlayer.setEnabled(enable);
         mBtnGoEditor.setEnabled(enable);
         mBtnFaceDetect.setEnabled(enable);
+        mBtnStartImgEdit.setEnabled(enable);
     }
 
     private void initView() {
@@ -115,12 +122,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBtnStartVideoPlayer = findViewById(R.id.btn_start_video_player);
         mBtnGoEditor = findViewById(R.id.btn_start_edit_activity);
         mBtnFaceDetect = findViewById(R.id.btn_start_face_detect);
+        mBtnStartImgEdit = findViewById(R.id.btn_start_img_edit);
 
         mBtnStartMusic.setOnClickListener(this);
         mBtnStartCamera.setOnClickListener(this);
         mBtnStartVideoPlayer.setOnClickListener(this);
         mBtnGoEditor.setOnClickListener(this);
         mBtnFaceDetect.setOnClickListener(this);
+        mBtnStartImgEdit.setOnClickListener(this);
     }
 
     private void requestUserPermission() {

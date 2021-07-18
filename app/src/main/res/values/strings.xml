@@ -7,6 +7,7 @@
     <string name="tip_go_video_player">start video player</string>
     <string name="tip_go_editor">start editor</string>
     <string name="tip_go_face_detect">start face detect</string>
+    <string name="tip_go_img_edit">start image edit</string>
 
     <string name="tip_init">init</string>
     <string name="tip_play">play</string>
@@ -29,7 +30,8 @@
     <string name="tip_front_camera">front camera</string>
     <string name="tip_back_camera">back camera</string>
     <string name="tip_capture">capture</string>
-    <string name="tip_contrast">contrast</string>
+    <string name="tip_contrast">Contrast</string>
+    <string name="tip_sharpen">Sharpen</string>
     <string name="tip_saturation">saturation</string>
     <string name="tip_blur">blur</string>
     <string name="tip_beauty">beauty</string>
@@ -49,4 +51,7 @@
     <string name="tip_init_face_detector">Init face detector</string>
     <string name="tip_detect">detect face</string>
     <string name="tip_adapt_contrast">adapt contrast</string>
+
+    <string name="tip_beautify">Beautify</string>
+    <string name="tip_clear">Clear</string>
 </resources>

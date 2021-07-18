@@ -1,4 +1,4 @@
-package com.lyzirving.flashvideo.opengl.filter;
+package com.lyzirving.flashvideo.imgedit.filter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 
+import com.lyzirving.flashvideo.opengl.filter.BaseFilter;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.util.ComponentUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
@@ -13,12 +14,12 @@ import com.lyzirving.flashvideo.util.LogUtil;
 /**
  * @author lyzirving
  */
-public class BitmapFilter extends BaseFilter {
-    private static final String TAG = "BitmapFilter";
+public class ImgBitmapFilter extends BaseFilter {
+    private static final String TAG = "ImgBitmapFilter";
     private int mBmpResId;
     private Bitmap mTmp;
 
-    public BitmapFilter(Context ctx, int bmpResId) {
+    public ImgBitmapFilter(Context ctx, int bmpResId) {
         super(ctx);
         mBmpResId = bmpResId;
     }
@@ -45,7 +46,7 @@ public class BitmapFilter extends BaseFilter {
         GLES20.glDisableVertexAttribArray(mTextureCoordinateHandler);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 
-        return mTextureId[0];
+        return textureId;
     }
 
     @Override
