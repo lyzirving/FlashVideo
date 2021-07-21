@@ -16,8 +16,8 @@ public:
         p_audio = nullptr;
 
         p_audio_packet_queue = new std::queue<AVPacket>();
-        p_msg_queue = new std::queue<Msg>();
-        p_audio_msg_queue = new std::queue<Msg>();
+        p_msg_queue = new std::queue<common::Msg>();
+        p_audio_msg_queue = new std::queue<common::Msg>();
 
         media_state = STATE_IDLE;
         main_clock = 0;
@@ -53,8 +53,8 @@ private:
     AudioPlayer* p_audio;
     MediaState media_state;
     std::queue<AVPacket>* p_audio_packet_queue;
-    std::queue<Msg>* p_msg_queue;
-    std::queue<Msg>* p_audio_msg_queue;
+    std::queue<common::Msg>* p_msg_queue;
+    std::queue<common::Msg>* p_audio_msg_queue;
 
     pthread_mutex_t main_evt_mutex_lock;
     pthread_cond_t main_evt_cond_lock;

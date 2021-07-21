@@ -1,6 +1,16 @@
 #ifndef FLASHVIDEO_COMMON_H
 #define FLASHVIDEO_COMMON_H
 
+#include <jni.h>
+
+namespace common {
+    static JavaVM *sPtrGlobalVm = nullptr;
+    struct Msg {
+        int what;
+        void* object;
+    };
+}
+
 enum MediaMsg {
     MSG_IDLE = 0,
     MSG_PLAY = 1,
@@ -9,10 +19,7 @@ enum MediaMsg {
     MSG_SEEK = 4,
     MSG_QUIT = 5,
 };
-struct Msg {
-    MediaMsg what;
-    float val_float;
-};
+
 enum MediaState{
     STATE_IDLE = 1,
     STATE_INITIALIZED = 2,
@@ -22,12 +29,6 @@ enum MediaState{
     STATE_STOP = 6,
     STATE_ERROR = 7,
     STATE_ABORT = 8,
-};
-
-struct VideoData {
-    long pts;
-    int* data;
-    int size;
 };
 
 struct DataYUV420 {

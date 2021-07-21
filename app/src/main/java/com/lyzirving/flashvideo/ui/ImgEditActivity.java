@@ -1,16 +1,23 @@
 package com.lyzirving.flashvideo.ui;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.AnimationSet;
 import android.view.animation.TranslateAnimation;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 
 import com.lyzirving.flashvideo.R;
 import com.lyzirving.flashvideo.imgedit.ImgEditView;
+import com.lyzirving.flashvideo.imgedit.algorithm.ImgAlgorithm;
+import com.lyzirving.flashvideo.imgedit.algorithm.ImgAlgorithmListener;
 import com.lyzirving.flashvideo.imgedit.filter.ImgContrastFilter;
 import com.lyzirving.flashvideo.imgedit.filter.ImgSharpenFilter;
+import com.lyzirving.flashvideo.util.LogUtil;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,6 +35,10 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
     private ConstraintLayout mRootAdjustBeauty;
 
     private SeekBar mSeekBarContrast, mSeekBarSharpen;
+    private int mSrcId = R.drawable.landscape1;
+
+    private ImgAlgorithm mAlgorithm;
+    private ImgAlgorithmListener mAlgorithmListener;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,7 +53,7 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
 
     @Override
     public void onViewChange(int width, int height) {
-        mImgEditView.setImageResource(R.drawable.landscape1);
+        mImgEditView.setImageResource(mSrcId);
     }
 
     @Override
@@ -71,6 +82,13 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LogUtil.i(TAG, "onDestroy");
+        mAlgorithm.release();
+    }
+
+    @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
 
     @Override
@@ -93,6 +111,25 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
         }
     }
 
+    private ImgAlgorithmListener getAlgorithmListener() {
+        if (mAlgorithmListener == null) {
+            mAlgorithmListener = new ImgAlgorithmListener() {
+                @Override
+                public void onFail() {
+                    super.onFail();
+                    LogUtil.i(TAG, "onFail");
+                }
+
+                @Override
+                public void onGetImage(final Bitmap bitmap) {
+                    super.onGetImage(bitmap);
+                    LogUtil.i(TAG, "onGetImage");
+                }
+            };
+        }
+        return mAlgorithmListener;
+    }
+
     private void initView() {
         mImgEditView = findViewById(R.id.view_img_edit);
         mRootAdjustBeauty = findViewById(R.id.layout_adjust_beauty_root);
@@ -109,6 +146,7 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
 
     private void initData() {
         mImgEditView.setListener(this);
+        mAlgorithm = new ImgAlgorithm(getAlgorithmListener());
 
         mImgEditView.post(new Runnable() {
             @Override

@@ -5,7 +5,6 @@
 #include "AudioPlayer.h"
 #include "VideoDecoder.h"
 #include "PacketQueue.h"
-#include "MsgQueue.h"
 #include "LogUtil.h"
 
 class VideoManager {

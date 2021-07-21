@@ -1,7 +1,7 @@
 #ifndef FLASHVIDEO_IMGUTIL_H
 #define FLASHVIDEO_IMGUTIL_H
 
-#include <jni.h>
+#include "Common.h"
 #include <android/bitmap.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc_c.h>

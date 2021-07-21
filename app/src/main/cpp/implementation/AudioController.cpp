@@ -165,7 +165,7 @@ void AudioController::dealAudioLoop(JNIEnv* env) {
             LogUtil::logD(TAG, {"dealAudioLoop: wait for msg"});
             pthread_cond_wait(&audio_evt_cond_lock, &audio_evt_mutex_lock);
         }
-        Msg msg = p_audio_msg_queue->front();
+        common::Msg msg = p_audio_msg_queue->front();
         switch (msg.what) {
             case MSG_PLAY: {
                 LogUtil::logD(TAG, {"dealAudioLoop: handle play"});
@@ -294,7 +294,7 @@ void AudioController::dealMainEvtLoop(JNIEnv* env) {
             LogUtil::logD(TAG, {"dealMainEvtLoop: wait for msg"});
             pthread_cond_wait(&main_evt_cond_lock, &main_evt_mutex_lock);
         }
-        Msg msg = p_msg_queue->front();
+        common::Msg msg = p_msg_queue->front();
         switch(msg.what) {
             case MSG_PLAY: {
                 LogUtil::logD(TAG, {"dealMainEvtLoop: handle play"});
@@ -310,7 +310,7 @@ void AudioController::dealMainEvtLoop(JNIEnv* env) {
                 pthread_cond_signal(&audio_packet_cond_lock);
                 pthread_mutex_unlock(&audio_packet_mutex_lock);
 
-                Msg msg_stop{.what = MSG_STOP};
+                common::Msg msg_stop{.what = MSG_STOP};
                 pthread_mutex_lock(&audio_evt_mutex_lock);
                 p_audio_msg_queue->push(msg_stop);
                 pthread_cond_signal(&audio_evt_cond_lock);
@@ -321,7 +321,7 @@ void AudioController::dealMainEvtLoop(JNIEnv* env) {
                 LogUtil::logD(TAG, {"dealMainEvtLoop: handle seek"});
                 seekToDst(p_ffmpeg_core->seek_dst);
                 media_state = STATE_PLAY;
-                Msg msg_play{.what = MSG_PLAY};
+                common::Msg msg_play{.what = MSG_PLAY};
                 p_msg_queue->push(msg_play);
                 pthread_mutex_lock(&audio_evt_mutex_lock);
                 p_audio_msg_queue->push(msg_play);
@@ -385,7 +385,7 @@ void AudioController::handlePlay() {
         LogUtil::logD(TAG, {"handlePlay: already in play state"});
     }else if (media_state == STATE_INITIALIZED || media_state == STATE_PAUSE) {
         media_state = STATE_PLAY;
-        Msg msg{.what = MSG_PLAY};
+        common::Msg msg{.what = MSG_PLAY};
         pthread_mutex_lock(&main_evt_mutex_lock);
         p_msg_queue->push(msg);
         pthread_cond_signal(&main_evt_cond_lock);
@@ -408,7 +408,7 @@ void AudioController::handleSeek(float seek_dst) {
     media_state = STATE_SEEK;
     p_ffmpeg_core->seek_dst = seek_dst;
     pthread_mutex_lock(&main_evt_mutex_lock);
-    Msg seek_msg{.what = MSG_SEEK};
+    common::Msg seek_msg{.what = MSG_SEEK};
     p_msg_queue->push(seek_msg);
     pthread_cond_signal(&main_evt_cond_lock);
     pthread_mutex_unlock(&main_evt_mutex_lock);
@@ -427,7 +427,7 @@ void AudioController::handlePause() {
 void AudioController::handleStop() {
     if (media_state >= STATE_INITIALIZED && media_state < STATE_STOP) {
         media_state = STATE_STOP;
-        Msg msg{.what = MSG_STOP};
+        common::Msg msg{.what = MSG_STOP};
         pthread_mutex_lock(&main_evt_mutex_lock);
         p_msg_queue->push(msg);
         pthread_cond_signal(&main_evt_cond_lock);
