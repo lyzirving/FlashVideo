@@ -130,6 +130,9 @@ public class ImgFilterGroup extends BaseFilter {
         } else if (TextUtils.equals(ImgSharpenFilter.class.getSimpleName(), tag)) {
             LogUtil.i(TAG, "addFilterInner: " + ImgSharpenFilter.class.getSimpleName());
             newFilter = new ImgSharpenFilter(ComponentUtil.get().ctx());
+        } else if (TextUtils.equals(ImgSaturationFilter.class.getSimpleName(), tag)) {
+            LogUtil.i(TAG, "addFilterInner: " + ImgSaturationFilter.class.getSimpleName());
+            newFilter = new ImgSaturationFilter(ComponentUtil.get().ctx());
         }
         if (newFilter != null) {
             mFilters.put(tag, newFilter);

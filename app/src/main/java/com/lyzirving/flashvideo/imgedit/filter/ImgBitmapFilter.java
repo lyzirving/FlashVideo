@@ -24,6 +24,11 @@ public class ImgBitmapFilter extends BaseFilter {
         mBmpResId = bmpResId;
     }
 
+    public ImgBitmapFilter(Context ctx, Bitmap bmp) {
+        super(ctx);
+        mTmp = bmp;
+    }
+
     @Override
     public int draw(int textureId) {
         GLES20.glUseProgram(mProgram);
@@ -66,10 +71,18 @@ public class ImgBitmapFilter extends BaseFilter {
     @Override
     protected void preInit() {
         super.preInit();
-        BitmapFactory.Options op = new BitmapFactory.Options();
-        op.inJustDecodeBounds = true;
-        BitmapFactory.decodeResource(ComponentUtil.get().ctx().getResources(), mBmpResId, op);
-        int bmpWidth = op.outWidth, bmpHeight = op.outHeight;
+        int bmpWidth, bmpHeight;
+        boolean bmpExist = mTmp != null;
+        if (bmpExist) {
+            bmpWidth = mTmp.getWidth();
+            bmpHeight = mTmp.getHeight();
+        } else {
+            BitmapFactory.Options op = new BitmapFactory.Options();
+            op.inJustDecodeBounds = true;
+            BitmapFactory.decodeResource(ComponentUtil.get().ctx().getResources(), mBmpResId, op);
+            bmpWidth = op.outWidth;
+            bmpHeight = op.outHeight;
+        }
         float bmpRatio = bmpWidth * 1f / bmpHeight;
         int dstWidth = bmpWidth, dstHeight = bmpHeight;
         if (bmpWidth > mOutputWidth || bmpHeight > mOutputHeight) {
@@ -103,7 +116,9 @@ public class ImgBitmapFilter extends BaseFilter {
                 -horRatio, -verRatio, 0
         };
         setVertexCoordinates(vertex);
-        mTmp = BitmapFactory.decodeResource(ComponentUtil.get().ctx().getResources(), mBmpResId);
+        if (!bmpExist) {
+            mTmp = BitmapFactory.decodeResource(ComponentUtil.get().ctx().getResources(), mBmpResId);
+        }
         mTextureWidth = dstWidth;
         mTextureHeight = dstHeight;
         LogUtil.i(TAG, "preInit: texture size = (" + mTextureWidth + "," + mTextureHeight + ")" + ", ratio = (" + horRatio + "," + verRatio + ")");

@@ -1,6 +1,7 @@
 package com.lyzirving.flashvideo.imgedit;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -99,7 +100,27 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
     }
 
     @Override
-    public void setImageResource(final int srcId) {
+    public void setImageBitmap(final Bitmap bmp, boolean forceRender) {
+        LogUtil.i(TAG, "setImageBitmap: " + bmp);
+        addPreDrawTask(new Runnable() {
+            @Override
+            public void run() {
+                LogUtil.i(TAG, "setImageBitmap: pre draw task");
+                if (mBgFilter != null) {
+                    mBgFilter.release();
+                }
+                mBgFilter = new ImgBitmapFilter(ComponentUtil.get().ctx(), bmp);
+                mBgFilter.setOutputSize(mViewWidth, mViewHeight);
+                mBgFilter.init();
+            }
+        });
+        if (forceRender) {
+            requestRender();
+        }
+    }
+
+    @Override
+    public void setImageResource(final int srcId, boolean forceRender) {
         LogUtil.i(TAG, "setImageResource: " + srcId);
         addPreDrawTask(new Runnable() {
             @Override
@@ -113,7 +134,9 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
                 mBgFilter.init();
             }
         });
-        requestRender();
+        if (forceRender) {
+            requestRender();
+        }
     }
 
     public void adjust(String tag, int value) {

@@ -15,13 +15,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         android:layout_marginTop="5dp">
 
         <TextView
             android:id="@+id/tv_contrast"
-            android:layout_width="wrap_content"
+            android:layout_width="65dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:textAllCaps="false"
@@ -53,7 +53,7 @@
 
         <TextView
             android:id="@+id/tv_sharpen"
-            android:layout_width="wrap_content"
+            android:layout_width="65dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:textAllCaps="false"
@@ -68,6 +68,38 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@+id/tv_sharpen"
+            android:layout_centerVertical="true"
+            android:max="100"
+            android:maxHeight="4dp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_saturation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@+id/rl_contrast"
+        app:layout_constraintEnd_toEndOf="@id/rl_contrast"
+        app:layout_constraintTop_toBottomOf="@+id/rl_sharpen"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:id="@+id/tv_saturation"
+            android:layout_width="65dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:textAllCaps="false"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:text="@string/tip_saturation"
+            tools:ignore="SmallSp" />
+
+        <SeekBar
+            android:id="@+id/seek_bar_saturation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/tv_saturation"
             android:layout_centerVertical="true"
             android:max="100"
             android:maxHeight="4dp" />

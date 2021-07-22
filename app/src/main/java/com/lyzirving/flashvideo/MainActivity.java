@@ -18,6 +18,7 @@ import com.lyzirving.flashvideo.ui.FaceDetectActivity;
 import com.lyzirving.flashvideo.ui.ImgEditActivity;
 import com.lyzirving.flashvideo.ui.MusicActivity;
 import com.lyzirving.flashvideo.ui.VideoPlayerActivity;
+import com.lyzirving.flashvideo.util.AssetsManager;
 import com.lyzirving.flashvideo.util.ComponentUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
 
@@ -105,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
         ComponentUtil.get().destroy();
+        AssetsManager.get().destroy();
     }
 
     private void enableButtons(boolean enable) {

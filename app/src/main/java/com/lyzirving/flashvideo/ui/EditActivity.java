@@ -91,7 +91,6 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
             mProgressSelector.setListener(null);
             mProgressSelector = null;
         }
-        AssetsManager.get().destroy();
     }
 
     @Override
