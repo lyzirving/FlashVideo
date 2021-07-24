@@ -18,6 +18,7 @@ import com.lyzirving.flashvideo.imgedit.ImgEditView;
 import com.lyzirving.flashvideo.imgedit.algorithm.ImgAlgorithm;
 import com.lyzirving.flashvideo.imgedit.algorithm.ImgAlgorithmListener;
 import com.lyzirving.flashvideo.imgedit.filter.ImgContrastFilter;
+import com.lyzirving.flashvideo.imgedit.filter.ImgGaussianFilter;
 import com.lyzirving.flashvideo.imgedit.filter.ImgSaturationFilter;
 import com.lyzirving.flashvideo.imgedit.filter.ImgSharpenFilter;
 import com.lyzirving.flashvideo.util.AssetsManager;
@@ -42,7 +43,7 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
     private LottieAnimationView mLottieLoading;
 
     private SeekBar mSeekBarContrast, mSeekBarSharpen, mSeekBarSaturation;
-    private int mSrcId = R.drawable.landscape1;
+    private int mSrcId = R.drawable.landscape;
 
     private ImgAlgorithm mAlgorithm;
     private ImgAlgorithmListener mAlgorithmListener;
@@ -59,9 +60,9 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
                     if (msg.obj instanceof Bitmap) {
                         Bitmap pic = (Bitmap) msg.obj;
                         mImgEditView.setImageBitmap(pic, false);
-                        mImgEditView.addFilter(ImgContrastFilter.class.getSimpleName(), false);
-                        mImgEditView.addFilter(ImgSharpenFilter.class.getSimpleName(), false);
-                        mImgEditView.addFilter(ImgSaturationFilter.class.getSimpleName(), true);
+                        mImgEditView.addFilter(new ImgContrastFilter(getApplicationContext()), false);
+                        mImgEditView.addFilter(new ImgSharpenFilter(getApplicationContext()), false);
+                        mImgEditView.addFilter(new ImgSaturationFilter(getApplicationContext()), true);
                     }
                     break;
                 }
@@ -105,9 +106,9 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
                         }
                     });
                 } else if (!show) {
-                    mImgEditView.addFilter(ImgContrastFilter.class.getSimpleName(), false);
-                    mImgEditView.addFilter(ImgSharpenFilter.class.getSimpleName(), false);
-                    mImgEditView.addFilter(ImgSaturationFilter.class.getSimpleName(), true);
+                    mImgEditView.addFilter(new ImgContrastFilter(getApplicationContext()), false);
+                    mImgEditView.addFilter(new ImgSharpenFilter(getApplicationContext()), false);
+                    mImgEditView.addFilter(new ImgSaturationFilter(getApplicationContext()), true);
                 }
                 break;
             }

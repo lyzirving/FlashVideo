@@ -8,6 +8,7 @@ namespace common {
     struct Msg {
         int what;
         void* object;
+        float valFloat;
     };
 }
 

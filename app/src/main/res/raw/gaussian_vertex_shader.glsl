@@ -1,15 +1,17 @@
+const int GAUSSIAN_SAMPLES = 9;
+
 attribute vec3 a_vertex_pos;
 attribute vec2 a_texture_coord_pos;
 
-const int GAUSSIAN_SAMPLES = 9;
 uniform float u_texture_width_offset;
 uniform float u_texture_height_offset;
+uniform mat4 u_matrix;
 
 varying vec2 v_texture_coord_pos;
 varying vec2 v_blur_coordinates[GAUSSIAN_SAMPLES];
 
 void main() {
-    gl_Position = vec4(a_vertex_pos,1);
+    gl_Position = u_matrix * vec4(a_vertex_pos,1);
     v_texture_coord_pos = a_texture_coord_pos;
 
     //Calculate the positions for the blur

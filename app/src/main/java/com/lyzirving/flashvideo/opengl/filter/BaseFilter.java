@@ -19,6 +19,7 @@ import androidx.annotation.RawRes;
  * @author lyzirving
  */
 public class BaseFilter implements IFilter {
+    protected static final int INVALID_ID = -1;
     protected static final int DEFAULT_VERTEX_COUNT = 6;
     protected static final int SCREEN_FRAME_BUFFER_ID = 0;
     protected static final int MIN_PROGRESS = 0;
@@ -61,6 +62,12 @@ public class BaseFilter implements IFilter {
     protected void addPreDrawTask(Runnable task) {
         synchronized (mRunPreDraw) {
             mRunPreDraw.addLast(task);
+        }
+    }
+
+    protected void addPreDrawTaskHead(Runnable task) {
+        synchronized (mRunPreDraw) {
+            mRunPreDraw.addFirst(task);
         }
     }
 
@@ -131,6 +138,25 @@ public class BaseFilter implements IFilter {
         mOutputHeight = height;
         mTextureWidth = width;
         mTextureHeight = height;
+    }
+
+    protected void setFloatValue(final int handler, final float val) {
+        addPreDrawTask(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform1f(handler, val);
+            }
+        });
+    }
+
+    protected void setFloatValue(final int handler1, final float val1, final int handler2, final float val2) {
+        addPreDrawTask(new Runnable() {
+            @Override
+            public void run() {
+                GLES20.glUniform1f(handler1, val1);
+                GLES20.glUniform1f(handler2, val2);
+            }
+        });
     }
 
     protected void initFloatBuffer() {

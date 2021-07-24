@@ -10,6 +10,7 @@ public:
     static bool registerSelf(JNIEnv *env);
     const static int MSG_HIST_EQUAL = 1;
     const static int MSG_QUIT = 2;
+    const static int MSG_FAST_NL_MEAN = 3;
 
     ImgAlgorithm() {
         mPtrMsgQueue = new std::queue<common::Msg>;
@@ -28,6 +29,7 @@ public:
 
     void enqueue(common::Msg& msg);
     common::Msg* dequeue();
+    bool fastNlMeanDeNoise(cv::Mat &src, cv::Mat &dst, float h);
     bool histEqual(cv::Mat &src, cv::Mat &dst);
     void loop(JNIEnv* env);
 private:
@@ -35,6 +37,7 @@ private:
     pthread_mutex_t mMutexLock;
     pthread_cond_t mCondLock;
 
+    void handleFastNlMean(JNIEnv* env, jobject inputBmp, float h = 3);
     void handleHistEqual(JNIEnv* env, jobject inputBmp);
 };
 

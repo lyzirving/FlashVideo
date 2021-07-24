@@ -67,6 +67,16 @@ public class TextureUtil {
         GLES20.glDeleteFramebuffers(1, frameBuffers, index);
     }
 
+    public void deleteFrameBufferAndTextureFromOffset(int offset, int[] frameBuffers, int[] textures) {
+        if (offset >= frameBuffers.length) {
+            throw new RuntimeException("deleteFrameBufferAndTextureFromOffset: invalid offset = " + offset + ", size = " + frameBuffers.length);
+        }
+        for (int i = offset; i < frameBuffers.length; i++) {
+            GLES20.glDeleteTextures(1, textures, i);
+            GLES20.glDeleteFramebuffers(1, frameBuffers, i);
+        }
+    }
+
     public void deleteTexture(int textureId) {
         if (textureId != TextureUtil.ID_NO_TEXTURE) {
             int[] ids = new int[]{textureId};
@@ -86,6 +96,34 @@ public class TextureUtil {
             throw new RuntimeException("generateFrameBufferAndTexture: invalid size");
         }
         for (int i = 0; i < size; i++) {
+            GLES20.glGenFramebuffers(1, frameBuffers, i);
+
+            GLES20.glGenTextures(1, textures, i);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[i]);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0,
+                    GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBuffers[i]);
+            GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
+                    GLES20.GL_TEXTURE_2D, textures[i], 0);
+
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+        }
+    }
+
+    public void generateFrameBufferAndTextureOffset(int startOffset, int[] frameBuffers, int[] textures, int width, int height) {
+        if (startOffset >= frameBuffers.length || startOffset >= textures.length) {
+            throw new RuntimeException("generateFrameBufferAndTextureOffset: invalid start offset = " + startOffset + ", size = " + frameBuffers.length);
+        }
+        if (frameBuffers.length != textures.length) {
+            throw new RuntimeException("generateFrameBufferAndTextureOffset: invalid input array length");
+        }
+        for (int i = startOffset; i < frameBuffers.length; i++) {
             GLES20.glGenFramebuffers(1, frameBuffers, i);
 
             GLES20.glGenTextures(1, textures, i);

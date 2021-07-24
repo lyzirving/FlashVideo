@@ -8,15 +8,14 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
 import com.lyzirving.flashvideo.imgedit.filter.ImgBitmapFilter;
-import com.lyzirving.flashvideo.imgedit.filter.ImgFilterGroup;
 import com.lyzirving.flashvideo.imgedit.filter.ImgScreenFilter;
 import com.lyzirving.flashvideo.opengl.filter.BaseFilter;
+import com.lyzirving.flashvideo.opengl.filter.BaseFilterGroup;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
 import com.lyzirving.flashvideo.util.ComponentUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
 
 import java.util.LinkedList;
-import java.util.Queue;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -28,14 +27,14 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
     private static final String TAG = "ImgEditView";
 
     private final Object mLock = new Object();
-    private Queue<Runnable> mPreDrawTask;
+    private LinkedList<Runnable> mPreDrawTask;
     private int mViewWidth, mViewHeight;
 
     private int[] mOffScreenFrameBuffer = new int[]{TextureUtil.ID_NO_FRAME_BUFFER};
     private int[] mOffScreenTexture = new int[]{TextureUtil.ID_NO_TEXTURE};
     private BaseFilter mBgFilter;
     private ImgScreenFilter mScreenFilter;
-    private ImgFilterGroup mFilterGroup;
+    private BaseFilterGroup mFilterGroup;
     private ImgEditViewListener mListener;
 
     public ImgEditView(Context context) {
@@ -82,7 +81,7 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
             lastTexture = mFilterGroup.draw(lastTexture);
 
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-            mScreenFilter.flip(false, mFilterGroup.getFilterSize() % 2 == 0);
+            mScreenFilter.flip(false, mFilterGroup.getFilterCount() % 2 == 0);
             mScreenFilter.draw(lastTexture);
         }
     }
@@ -144,17 +143,22 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
             LogUtil.i(TAG, "adjust: filter group is null");
             return;
         }
-        if (mFilterGroup.adjust(tag, value)) {
-            requestRender();
+        BaseFilter filter = mFilterGroup.getFilter(tag);
+        if (filter == null) {
+            LogUtil.i(TAG, "adjust: can not get filter " + tag + " from filter group");
+            return;
         }
+        filter.adjustProgress(value);
+        requestRender();
     }
 
-    public void addFilter(String tag, boolean forceRender) {
+    public void addFilter(BaseFilter filter, boolean forceRender) {
         if (mFilterGroup == null) {
             LogUtil.i(TAG, "addFilter: filter group is null");
             return;
         }
-        if (mFilterGroup.addFilter(tag) && forceRender) {
+        mFilterGroup.addFilter(filter, forceRender);
+        if (forceRender) {
             requestRender();
         }
     }
@@ -166,9 +170,7 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
         }
         addPreDrawTask(new Runnable() {
             @Override
-            public void run() {
-                mFilterGroup.release();
-            }
+            public void run() { mFilterGroup.release(); }
         });
         requestRender();
     }
@@ -179,7 +181,13 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
 
     private void addPreDrawTask(final Runnable runnable) {
         synchronized (mLock) {
-            mPreDrawTask.add(runnable);
+            mPreDrawTask.addLast(runnable);
+        }
+    }
+
+    private void addPreDrawTaskHead(final Runnable runnable) {
+        synchronized (mLock) {
+            mPreDrawTask.addFirst(runnable);
         }
     }
 
@@ -197,9 +205,12 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
 
     private void prepareFilterWhenViewSizeChange(int width, int height) {
         if (mFilterGroup != null) {
-            mFilterGroup.release();
+            addPreDrawTaskHead(new Runnable() {
+                @Override
+                public void run() { mFilterGroup.release(); }
+            });
         }
-        mFilterGroup = new ImgFilterGroup(getContext());
+        mFilterGroup = new BaseFilterGroup(getContext());
         mFilterGroup.setOutputSize(width, height);
         if (mOffScreenFrameBuffer[0] != TextureUtil.ID_NO_FRAME_BUFFER) {
             TextureUtil.get().deleteFrameBufferAndTexture(mOffScreenFrameBuffer, mOffScreenTexture);

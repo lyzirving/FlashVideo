@@ -17,6 +17,10 @@ public class ImgAlgorithm {
         mPtr = nativeConstruct(listener);
     }
 
+    public void fastNlMean(Bitmap bmp, float h) {
+        nativeNlMean(mPtr, bmp, h);
+    }
+
     public void histEqual(Bitmap bmp) {
         nativeHistEqual(mPtr, bmp);
     }
@@ -26,6 +30,7 @@ public class ImgAlgorithm {
     }
 
     private static native long nativeConstruct(ImgAlgorithmListener listener);
+    private static native void nativeNlMean(long ptr, Bitmap input, float h);
     private static native void nativeHistEqual(long ptr, Bitmap input);
     private static native void nativeRelease(long ptr);
 }

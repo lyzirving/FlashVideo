@@ -2,6 +2,7 @@
 #include "ImgUtil.h"
 #include "JavaCallbackUtil.h"
 #include "LogUtil.h"
+#include "TimeUtil.h"
 
 #define TAG "ImgAlgorithm"
 #define JAVA_CLASS "com/lyzirving/flashvideo/imgedit/algorithm/ImgAlgorithm"
@@ -34,6 +35,12 @@ static jlong nConstruct(JNIEnv *env, jclass clazz, jobject listener) {
     return reinterpret_cast<jlong>(ptr);
 }
 
+static void nFastNlMean(JNIEnv *env, jclass clazz, jlong pointer, jobject inputBmp, jfloat h) {
+    auto* ptr = reinterpret_cast<ImgAlgorithm *>(pointer);
+    common::Msg msg{.what = ImgAlgorithm::MSG_FAST_NL_MEAN, .object = (env->NewGlobalRef(inputBmp)), .valFloat = h};
+    ptr->enqueue(msg);
+}
+
 static void nHistEqual(JNIEnv *env, jclass clazz, jlong pointer, jobject inputBmp) {
     auto* ptr = reinterpret_cast<ImgAlgorithm *>(pointer);
     common::Msg msg{.what = ImgAlgorithm::MSG_HIST_EQUAL, .object = (env->NewGlobalRef(inputBmp))};
@@ -61,6 +68,11 @@ static JNINativeMethod sJniMethods[] = {
                 "nativeRelease",
                 "(J)V",
                 (void *) nRelease
+        },
+        {
+                "nativeNlMean",
+                "(JLandroid/graphics/Bitmap;F)V",
+                (void *) nFastNlMean
         },
 };
 
@@ -100,6 +112,18 @@ common::Msg* ImgAlgorithm::dequeue() {
     return msg;
 }
 
+bool ImgAlgorithm::fastNlMeanDeNoise(cv::Mat &src, cv::Mat &dst, float h) {
+    if (src.empty() || !src.data) {
+        LogUtil::logI(TAG, {"fastNlMeanDeNoise: src is invalid"});
+        return false;
+    }
+    long long startTime = TimeUtil::getCurrentTimeMs();
+    cv::fastNlMeansDenoisingColored(src, dst, h);
+    long long endTime = TimeUtil::getCurrentTimeMs();
+    LogUtil::logI(TAG, {"fastNlMeanDeNoise: duration: ", std::to_string(endTime - startTime), " ms"});
+    return true;
+}
+
 bool ImgAlgorithm::histEqual(cv::Mat &src, cv::Mat &dst) {
     if (src.empty() || !src.data) {
         LogUtil::logI(TAG, {"histEqual: src is invalid"});
@@ -114,6 +138,31 @@ bool ImgAlgorithm::histEqual(cv::Mat &src, cv::Mat &dst) {
 
     cv::merge(grbMat, dst);
     return true;
+}
+
+void ImgAlgorithm::handleFastNlMean(JNIEnv *env, jobject inputBmp, float h) {
+    cv::Mat src;
+    long long startTime = TimeUtil::getCurrentTimeMs();
+    jobject listener = JavaCallbackUtil::findListener(&sGlobalListeners, reinterpret_cast<jlong>(this));
+    jclass listenerClass = env->GetObjectClass(listener);
+    jmethodID methodOnFail = env->GetMethodID(listenerClass, "onFail", "()V");
+    if (!ImgUtil::bitmap2Mat(env, inputBmp, src)) {
+        env->CallVoidMethod(listener, methodOnFail);
+        return;
+    }
+    cv::Mat dst;
+    if (!fastNlMeanDeNoise(src, dst, h)) {
+        env->CallVoidMethod(listener, methodOnFail);
+        return;
+    }
+    if (!ImgUtil::mat2Bitmap(env, dst, inputBmp)) {
+        env->CallVoidMethod(listener, methodOnFail);
+        return;
+    }
+    long long endTime = TimeUtil::getCurrentTimeMs();
+    LogUtil::logI(TAG, {"handleFastNlMean: duration = ", std::to_string(endTime - startTime)});
+    jmethodID methodOnSuccess = env->GetMethodID(listenerClass, "onGetImage", "(Landroid/graphics/Bitmap;)V");
+    env->CallVoidMethod(listener, methodOnSuccess, inputBmp);
 }
 
 void ImgAlgorithm::handleHistEqual(JNIEnv* env, jobject inputBmp) {
@@ -146,6 +195,11 @@ void ImgAlgorithm::loop(JNIEnv *env) {
             case MSG_HIST_EQUAL: {
                 LogUtil::logI(TAG, {"loop: handle msg hist equal"});
                 handleHistEqual(env, static_cast<jobject>(msg->object));
+                break;
+            }
+            case MSG_FAST_NL_MEAN: {
+                LogUtil::logI(TAG, {"loop: handle msg fast nl mean"});
+                handleFastNlMean(env, static_cast<jobject>(msg->object), msg->valFloat);
                 break;
             }
             case MSG_QUIT: {
