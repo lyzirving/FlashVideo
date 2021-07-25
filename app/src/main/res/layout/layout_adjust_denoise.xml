@@ -48,7 +48,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="@+id/rl_hor_blur_size"
-        app:layout_constraintEnd_toEndOf="@id/rl_hor_blur_size"
+        app:layout_constraintEnd_toEndOf="@+id/rl_hor_blur_size"
         app:layout_constraintTop_toBottomOf="@+id/rl_hor_blur_size"
         android:layout_marginTop="10dp">
 
@@ -69,6 +69,38 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@+id/tv_ver_blur"
+            android:layout_centerVertical="true"
+            android:max="100"
+            android:maxHeight="4dp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_toon_quantization_level"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@+id/rl_ver_blur_size"
+        app:layout_constraintEnd_toEndOf="@+id/rl_ver_blur_size"
+        app:layout_constraintTop_toBottomOf="@+id/rl_ver_blur_size"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:id="@+id/tv_toon_quantization_level"
+            android:layout_width="65dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:textAllCaps="false"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:text="@string/tip_quantization"
+            tools:ignore="SmallSp" />
+
+        <SeekBar
+            android:id="@+id/seek_bar_toon_quantization_level"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/tv_toon_quantization_level"
             android:layout_centerVertical="true"
             android:max="100"
             android:maxHeight="4dp" />

@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import com.lyzirving.flashvideo.imgedit.filter.ImgBitmapFilter;
 import com.lyzirving.flashvideo.imgedit.filter.ImgGaussianFilter;
 import com.lyzirving.flashvideo.imgedit.filter.ImgScreenFilter;
+import com.lyzirving.flashvideo.imgedit.filter.ImgToonFilter;
 import com.lyzirving.flashvideo.opengl.filter.BaseFilter;
 import com.lyzirving.flashvideo.opengl.filter.BaseFilterGroup;
 import com.lyzirving.flashvideo.opengl.util.TextureUtil;
@@ -150,6 +151,20 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
             return;
         }
         filter.adjustProgress(value);
+        requestRender();
+    }
+
+    public void adjustToonQuantizationLevel(int value) {
+        if (mFilterGroup == null) {
+            LogUtil.i(TAG, "adjustToonQuantizationLevel: filter group is null");
+            return;
+        }
+        BaseFilter filter = mFilterGroup.getFilter(ImgToonFilter.class.getSimpleName());
+        if (!(filter instanceof ImgToonFilter)) {
+            LogUtil.i(TAG, "adjustToonQuantizationLevel: can not get toon filter");
+            return;
+        }
+        ((ImgToonFilter) filter).adjustQuantizationLevels(value);
         requestRender();
     }
 

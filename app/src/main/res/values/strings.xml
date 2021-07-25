@@ -35,6 +35,8 @@
     <string name="tip_saturation">Saturation</string>
     <string name="tip_hor_blur">Horizontal</string>
     <string name="tip_ver_blur">Vertical</string>
+    <string name="tip_threshold">Threshold</string>
+    <string name="tip_quantization">Quanti</string>
     <string name="tip_blur">blur</string>
     <string name="tip_beauty">beauty</string>
     <string name="tip_start_record">start record</string>

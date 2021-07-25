@@ -21,6 +21,7 @@ import com.lyzirving.flashvideo.imgedit.filter.ImgContrastFilter;
 import com.lyzirving.flashvideo.imgedit.filter.ImgGaussianFilter;
 import com.lyzirving.flashvideo.imgedit.filter.ImgSaturationFilter;
 import com.lyzirving.flashvideo.imgedit.filter.ImgSharpenFilter;
+import com.lyzirving.flashvideo.imgedit.filter.ImgToonFilter;
 import com.lyzirving.flashvideo.util.AssetsManager;
 import com.lyzirving.flashvideo.util.LogUtil;
 
@@ -42,7 +43,8 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
     private ConstraintLayout mRootAdjustBeauty, mRootAdjustDenoise;
     private LottieAnimationView mLottieLoading;
 
-    private SeekBar mSeekBarContrast, mSeekBarSharpen, mSeekBarSaturation, mSeekBarHorDenoise, mSeekBarVerDenoise;
+    private SeekBar mSeekBarContrast, mSeekBarSharpen, mSeekBarSaturation, mSeekBarHorDenoise, mSeekBarVerDenoise,
+            mSeekbarQuantization;
     private int mSrcId = R.drawable.landscape;
 
     private ImgAlgorithm mAlgorithm;
@@ -124,7 +126,8 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
                 boolean show = mRootAdjustDenoise.getVisibility() == View.VISIBLE;
                 showRootAdjust(mRootAdjustDenoise, !show);
                 if (!show) {
-                    mImgEditView.addFilter(new ImgGaussianFilter(getApplicationContext()), true);
+                    mImgEditView.addFilter(new ImgGaussianFilter(getApplicationContext()), false);
+                    mImgEditView.addFilter(new ImgToonFilter(getApplicationContext()), true);
                 }
                 break;
             }
@@ -178,6 +181,10 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
                 mImgEditView.adjustVerDenoise(seekBar.getProgress());
                 break;
             }
+            case R.id.seek_bar_toon_quantization_level: {
+                mImgEditView.adjustToonQuantizationLevel(seekBar.getProgress());
+                break;
+            }
             default: {
                 break;
             }
@@ -218,6 +225,7 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
         mSeekBarSaturation = findViewById(R.id.seek_bar_saturation);
         mSeekBarHorDenoise = findViewById(R.id.seek_bar_hor_blur);
         mSeekBarVerDenoise = findViewById(R.id.seek_bar_ver_blur);
+        mSeekbarQuantization = findViewById(R.id.seek_bar_toon_quantization_level);
         mLottieLoading = findViewById(R.id.lottie_loading);
 
         mSeekBarContrast.setOnSeekBarChangeListener(this);
@@ -225,6 +233,7 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
         mSeekBarSaturation.setOnSeekBarChangeListener(this);
         mSeekBarHorDenoise.setOnSeekBarChangeListener(this);
         mSeekBarVerDenoise.setOnSeekBarChangeListener(this);
+        mSeekbarQuantization.setOnSeekBarChangeListener(this);
         findViewById(R.id.layout_beautify).setOnClickListener(this);
         findViewById(R.id.layout_denoise).setOnClickListener(this);
         findViewById(R.id.layout_clear).setOnClickListener(this);
@@ -256,6 +265,7 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
         mSeekBarSaturation.setProgress(50);
         mSeekBarHorDenoise.setProgress(0);
         mSeekBarVerDenoise.setProgress(0);
+        mSeekbarQuantization.setProgress(0);
     }
 
     private void showLoadingView(boolean show) {
