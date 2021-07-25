@@ -33,6 +33,8 @@
     <string name="tip_contrast">Contrast</string>
     <string name="tip_sharpen">Sharpen</string>
     <string name="tip_saturation">Saturation</string>
+    <string name="tip_hor_blur">Horizontal</string>
+    <string name="tip_ver_blur">Vertical</string>
     <string name="tip_blur">blur</string>
     <string name="tip_beauty">beauty</string>
     <string name="tip_start_record">start record</string>
@@ -53,5 +55,6 @@
     <string name="tip_adapt_contrast">adapt contrast</string>
 
     <string name="tip_beautify">Beautify</string>
+    <string name="tip_denoise">Denoise</string>
     <string name="tip_clear">Clear</string>
 </resources>

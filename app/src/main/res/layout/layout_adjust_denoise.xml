@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
-    android:id="@+id/layout_adjust_beauty_root"
+    android:id="@+id/layout_adjust_denoise_root"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -10,7 +10,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <RelativeLayout
-        android:id="@+id/rl_contrast"
+        android:id="@+id/rl_hor_blur_size"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,7 +21,7 @@
         android:layout_marginTop="5dp">
 
         <TextView
-            android:id="@+id/tv_contrast"
+            android:id="@+id/tv_hor_blur"
             android:layout_width="65dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -29,14 +29,14 @@
             android:textColor="#000000"
             android:gravity="center"
             android:textSize="12sp"
-            android:text="@string/tip_contrast"
+            android:text="@string/tip_hor_blur"
             tools:ignore="SmallSp" />
 
         <SeekBar
-            android:id="@+id/seek_bar_contrast"
+            android:id="@+id/seek_bar_hor_blur"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/tv_contrast"
+            android:layout_toEndOf="@+id/tv_hor_blur"
             android:layout_centerVertical="true"
             android:max="100"
             android:maxHeight="4dp" />
@@ -44,16 +44,16 @@
     </RelativeLayout>
 
     <RelativeLayout
-        android:id="@+id/rl_sharpen"
+        android:id="@+id/rl_ver_blur_size"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@+id/rl_contrast"
-        app:layout_constraintEnd_toEndOf="@id/rl_contrast"
-        app:layout_constraintTop_toBottomOf="@+id/rl_contrast"
+        app:layout_constraintStart_toStartOf="@+id/rl_hor_blur_size"
+        app:layout_constraintEnd_toEndOf="@id/rl_hor_blur_size"
+        app:layout_constraintTop_toBottomOf="@+id/rl_hor_blur_size"
         android:layout_marginTop="10dp">
 
         <TextView
-            android:id="@+id/tv_sharpen"
+            android:id="@+id/tv_ver_blur"
             android:layout_width="65dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -61,46 +61,14 @@
             android:textColor="#000000"
             android:gravity="center"
             android:textSize="12sp"
-            android:text="@string/tip_sharpen"
+            android:text="@string/tip_ver_blur"
             tools:ignore="SmallSp" />
 
         <SeekBar
-            android:id="@+id/seek_bar_sharpen"
+            android:id="@+id/seek_bar_ver_blur"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/tv_sharpen"
-            android:layout_centerVertical="true"
-            android:max="100"
-            android:maxHeight="4dp" />
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/rl_saturation"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@+id/rl_contrast"
-        app:layout_constraintEnd_toEndOf="@id/rl_contrast"
-        app:layout_constraintTop_toBottomOf="@+id/rl_sharpen"
-        android:layout_marginTop="10dp">
-
-        <TextView
-            android:id="@+id/tv_saturation"
-            android:layout_width="65dp"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:textAllCaps="false"
-            android:textColor="#000000"
-            android:gravity="center"
-            android:textSize="12sp"
-            android:text="@string/tip_saturation"
-            tools:ignore="SmallSp" />
-
-        <SeekBar
-            android:id="@+id/seek_bar_saturation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/tv_saturation"
+            android:layout_toEndOf="@+id/tv_ver_blur"
             android:layout_centerVertical="true"
             android:max="100"
             android:maxHeight="4dp" />

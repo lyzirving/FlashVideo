@@ -39,10 +39,10 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
 
     private int mAniDistance;
     private ImgEditView mImgEditView;
-    private ConstraintLayout mRootAdjustBeauty;
+    private ConstraintLayout mRootAdjustBeauty, mRootAdjustDenoise;
     private LottieAnimationView mLottieLoading;
 
-    private SeekBar mSeekBarContrast, mSeekBarSharpen, mSeekBarSaturation;
+    private SeekBar mSeekBarContrast, mSeekBarSharpen, mSeekBarSaturation, mSeekBarHorDenoise, mSeekBarVerDenoise;
     private int mSrcId = R.drawable.landscape;
 
     private ImgAlgorithm mAlgorithm;
@@ -93,6 +93,10 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.layout_beautify: {
+                if (rootAdjustShow()) {
+                    hideAllRootAdjust();
+                    return;
+                }
                 boolean show = mRootAdjustBeauty.getVisibility() == View.VISIBLE;
                 showRootAdjust(mRootAdjustBeauty, !show);
                 if (!show && !mHasExecuteHistEqual && mEnableAutoBeauty) {
@@ -112,14 +116,24 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
                 }
                 break;
             }
+            case R.id.layout_denoise: {
+                if (rootAdjustShow()) {
+                    hideAllRootAdjust();
+                    return;
+                }
+                boolean show = mRootAdjustDenoise.getVisibility() == View.VISIBLE;
+                showRootAdjust(mRootAdjustDenoise, !show);
+                if (!show) {
+                    mImgEditView.addFilter(new ImgGaussianFilter(getApplicationContext()), true);
+                }
+                break;
+            }
             case R.id.layout_clear: {
                 mHasExecuteHistEqual = false;
                 mImgEditView.setImageResource(mSrcId, false);
                 mImgEditView.clear();
-                mSeekBarContrast.setProgress(50);
-                mSeekBarSharpen.setProgress(50);
-                mSeekBarSaturation.setProgress(50);
-                showRootAdjust(mRootAdjustBeauty, false);
+                hideAllRootAdjust();
+                setSeekBarDefault();
                 break;
             }
             default: {
@@ -156,6 +170,14 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
                 mImgEditView.adjust(ImgSaturationFilter.class.getSimpleName(), seekBar.getProgress());
                 break;
             }
+            case R.id.seek_bar_hor_blur: {
+                mImgEditView.adjustHorDenoise(seekBar.getProgress());
+                break;
+            }
+            case R.id.seek_bar_ver_blur: {
+                mImgEditView.adjustVerDenoise(seekBar.getProgress());
+                break;
+            }
             default: {
                 break;
             }
@@ -182,27 +204,36 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
         return mAlgorithmListener;
     }
 
+    private void hideAllRootAdjust() {
+        mRootAdjustBeauty.setVisibility(View.GONE);
+        mRootAdjustDenoise.setVisibility(View.GONE);
+    }
+
     private void initView() {
         mImgEditView = findViewById(R.id.view_img_edit);
         mRootAdjustBeauty = findViewById(R.id.layout_adjust_beauty_root);
+        mRootAdjustDenoise = findViewById(R.id.layout_adjust_denoise_root);
         mSeekBarContrast = findViewById(R.id.seek_bar_contrast);
         mSeekBarSharpen = findViewById(R.id.seek_bar_sharpen);
         mSeekBarSaturation = findViewById(R.id.seek_bar_saturation);
+        mSeekBarHorDenoise = findViewById(R.id.seek_bar_hor_blur);
+        mSeekBarVerDenoise = findViewById(R.id.seek_bar_ver_blur);
         mLottieLoading = findViewById(R.id.lottie_loading);
 
-        mSeekBarContrast.setProgress(50);
         mSeekBarContrast.setOnSeekBarChangeListener(this);
-        mSeekBarSharpen.setProgress(50);
         mSeekBarSharpen.setOnSeekBarChangeListener(this);
-        mSeekBarSaturation.setProgress(50);
         mSeekBarSaturation.setOnSeekBarChangeListener(this);
+        mSeekBarHorDenoise.setOnSeekBarChangeListener(this);
+        mSeekBarVerDenoise.setOnSeekBarChangeListener(this);
         findViewById(R.id.layout_beautify).setOnClickListener(this);
+        findViewById(R.id.layout_denoise).setOnClickListener(this);
         findViewById(R.id.layout_clear).setOnClickListener(this);
     }
 
     private void initData() {
         mImgEditView.setListener(this);
         mAlgorithm = new ImgAlgorithm(getAlgorithmListener());
+        setSeekBarDefault();
 
         mImgEditView.post(new Runnable() {
             @Override
@@ -212,6 +243,19 @@ public class ImgEditActivity extends AppCompatActivity implements ImgEditView.Im
                 mAniDistance = root.getBottom() - guide.getBottom();
             }
         });
+    }
+
+    private boolean rootAdjustShow() {
+        return mRootAdjustBeauty.getVisibility() == View.VISIBLE ||
+                mRootAdjustDenoise.getVisibility() == View.VISIBLE;
+    }
+
+    private void setSeekBarDefault() {
+        mSeekBarContrast.setProgress(0);
+        mSeekBarSharpen.setProgress(50);
+        mSeekBarSaturation.setProgress(50);
+        mSeekBarHorDenoise.setProgress(0);
+        mSeekBarVerDenoise.setProgress(0);
     }
 
     private void showLoadingView(boolean show) {

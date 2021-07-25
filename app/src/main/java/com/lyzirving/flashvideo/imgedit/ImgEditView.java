@@ -8,6 +8,7 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
 import com.lyzirving.flashvideo.imgedit.filter.ImgBitmapFilter;
+import com.lyzirving.flashvideo.imgedit.filter.ImgGaussianFilter;
 import com.lyzirving.flashvideo.imgedit.filter.ImgScreenFilter;
 import com.lyzirving.flashvideo.opengl.filter.BaseFilter;
 import com.lyzirving.flashvideo.opengl.filter.BaseFilterGroup;
@@ -152,13 +153,40 @@ public class ImgEditView extends GLSurfaceView implements GLSurfaceView.Renderer
         requestRender();
     }
 
+    public void adjustHorDenoise(int value) {
+        if (mFilterGroup == null) {
+            LogUtil.i(TAG, "adjustHorDenoise: filter group is null");
+            return;
+        }
+        BaseFilter filter = mFilterGroup.getFilter(ImgGaussianFilter.class.getSimpleName());
+        if (!(filter instanceof ImgGaussianFilter)) {
+            LogUtil.i(TAG, "adjustHorDenoise: can not get gaussian filter");
+            return;
+        }
+        ((ImgGaussianFilter) filter).adjustHorBlur(value);
+        requestRender();
+    }
+
+    public void adjustVerDenoise(int value) {
+        if (mFilterGroup == null) {
+            LogUtil.i(TAG, "adjustVerDenoise: filter group is null");
+            return;
+        }
+        BaseFilter filter = mFilterGroup.getFilter(ImgGaussianFilter.class.getSimpleName());
+        if (!(filter instanceof ImgGaussianFilter)) {
+            LogUtil.i(TAG, "adjustVerDenoise: can not get gaussian filter");
+            return;
+        }
+        ((ImgGaussianFilter) filter).adjustVerBlur(value);
+        requestRender();
+    }
+
     public void addFilter(BaseFilter filter, boolean forceRender) {
         if (mFilterGroup == null) {
             LogUtil.i(TAG, "addFilter: filter group is null");
             return;
         }
-        mFilterGroup.addFilter(filter, forceRender);
-        if (forceRender) {
+        if (mFilterGroup.addFilter(filter, forceRender) && forceRender) {
             requestRender();
         }
     }

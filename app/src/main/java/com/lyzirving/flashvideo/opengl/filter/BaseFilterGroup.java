@@ -34,12 +34,23 @@ public class BaseFilterGroup extends BaseFilter {
      * the initFilterGroup should be called later
      * @param filter specific filter
      */
-    public void addFilterThenInit(BaseFilter filter) {
+    public boolean addFilterThenInit(BaseFilter filter) {
+        if (mFilters.containsKey(filter.getClass().getSimpleName())) {
+            LogUtil.i(TAG, "addFilterThenInit: already contains " + filter.getClass().getSimpleName());
+            return false;
+        }
+        LogUtil.i(TAG, "addFilterThenInit: " + filter.getClass().getSimpleName());
         mFilters.put(filter.getClass().getSimpleName(), filter);
         filter.setOutputSize(mOutputWidth, mOutputHeight);
+        return true;
     }
 
-    public void addFilter(BaseFilter filter, boolean forceRender) {
+    public boolean addFilter(BaseFilter filter, boolean forceRender) {
+        if (mFilters.containsKey(filter.getClass().getSimpleName())) {
+            LogUtil.i(TAG, "addFilter: already contains " + filter.getClass().getSimpleName());
+            return false;
+        }
+        LogUtil.i(TAG, "addFilter: " + filter.getClass().getSimpleName());
         mFilters.put(filter.getClass().getSimpleName(), filter);
         filter.setOutputSize(mOutputWidth, mOutputHeight);
         if (forceRender) {
@@ -48,6 +59,7 @@ public class BaseFilterGroup extends BaseFilter {
                 public void run() { initFilterGroup(); }
             });
         }
+        return true;
     }
 
     @Override

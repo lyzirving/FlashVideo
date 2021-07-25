@@ -59,6 +59,15 @@
         android:layout_marginEnd="4dp"
         android:layout_marginTop="10dp" />
 
+    <include layout="@layout/layout_adjust_denoise"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@+id/hor_guide_dot_7"
+        app:layout_constraintBottom_toTopOf="@+id/hor_guide_dot_92"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginTop="10dp" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_beautify"
         android:layout_width="wrap_content"
@@ -92,6 +101,43 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/iv_beautify"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_denoise"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@+id/view_bottom_divider"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/layout_beautify"
+        android:layout_marginTop="1dp"
+        android:layout_marginStart="20dp">
+
+        <ImageView
+            android:id="@+id/iv_denoise"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/icon_denose"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/tv_denoise"
+            app:layout_constraintVertical_chainStyle="packed"/>
+
+        <TextView
+            android:id="@+id/tv_denoise"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:text="@string/tip_denoise"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/iv_denoise"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

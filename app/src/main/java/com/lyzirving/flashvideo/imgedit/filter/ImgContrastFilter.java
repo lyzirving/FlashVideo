@@ -39,13 +39,8 @@ public class ImgContrastFilter extends BaseFilter {
         } else if (progress > 100) {
             progress = 100;
         }
-        if (progress <= 50) {
-            //needs to be [0, 1]
-            adjust(progress * 1f / 50);
-        } else {
-            //needs to be （1, 4]
-            adjust(1 + (progress - 50) * 1f / 50 * 3);
-        }
+        //needs to be （1, 4]
+        adjust(1 + progress * 1f / 100 * 3);
     }
 
     @Override

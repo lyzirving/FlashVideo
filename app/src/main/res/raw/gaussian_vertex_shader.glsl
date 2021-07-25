@@ -17,10 +17,9 @@ void main() {
     //Calculate the positions for the blur
     int multiplier = 0;
     vec2 blur_step;
-    vec2 single_step_offset = vec2(u_texture_height_offset, u_texture_width_offset);
+    vec2 single_step_offset = vec2(u_texture_width_offset, u_texture_height_offset);
     for (int i = 0; i < GAUSSIAN_SAMPLES; i++) {
         multiplier = (i - ((GAUSSIAN_SAMPLES - 1) / 2));
-        // Blur in x (horizontal)
         blur_step = float(multiplier) * single_step_offset;
         v_blur_coordinates[i] = a_texture_coord_pos + blur_step;
     }
