@@ -1,7 +1,7 @@
 package com.lyzirving.flashvideo.ui;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,9 +9,11 @@ import android.view.PixelCopy;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.lyzirving.flashvideo.R;
 import com.lyzirving.flashvideo.face.FaceDetectAdapter;
 import com.lyzirving.flashvideo.face.FaceDetector;
+import com.lyzirving.flashvideo.face.FaceRectView;
 import com.lyzirving.flashvideo.util.AssetsManager;
 import com.lyzirving.flashvideo.util.BitmapUtil;
 import com.lyzirving.flashvideo.util.LogUtil;
@@ -32,6 +34,8 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
     private Bitmap mBmpInView;
     private Handler mMainHandler;
     private FaceDetectAdapter mFaceDetectAdapter;
+    private FaceRectView mFaceRectView;
+    private LottieAnimationView mLoadingView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -64,13 +68,10 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
                 break;
             }
             case R.id.btn_detect: {
-                if (mBmpInView == null) {
-                    BitmapFactory.Options op = new BitmapFactory.Options();
-                    op.inJustDecodeBounds = true;
-                    BitmapFactory.decodeResource(getResources(), R.drawable.multiplefaces, op);
-                    mBmpInView = Bitmap.createBitmap(op.outWidth, op.outHeight, op.outConfig);
-                }
-                BitmapUtil.getBitmapFromView(getWindow(), mIvSrc, mBmpInView, this, mMainHandler);
+                Rect viewRect = BitmapUtil.getViewLocationInWindow(getWindow(), mIvSrc);
+                mBmpInView = Bitmap.createBitmap(viewRect.width(), viewRect.height(), Bitmap.Config.RGB_565);
+                showLoadingView(true);
+                BitmapUtil.getBitmapFromWindow(getWindow(), viewRect, mBmpInView, this, mMainHandler);
                 break;
             }
             default: {
@@ -84,23 +85,9 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
         LogUtil.i(TAG, "onPixelCopyFinished: result = " + copyResult);
         if (copyResult == PixelCopy.SUCCESS) {
             mFaceDetector.detect(mBmpInView);
+        } else {
+            showLoadingView(false);
         }
-    }
-
-    private void initView() {
-        mIvSrc = findViewById(R.id.iv_src);
-        findViewById(R.id.btn_init_face_detector).setOnClickListener(this);
-        findViewById(R.id.btn_detect).setOnClickListener(this);
-    }
-
-    private void initData() {
-        mMainHandler = new Handler(getMainLooper());
-        AssetsManager.get().executeAsyncTask(new Runnable() {
-            @Override
-            public void run() {
-                AssetsManager.get().copyAssets(AssetsManager.AssetsType.CLASSIFIER);
-            }
-        });
     }
 
     private FaceDetectAdapter getFaceDetectAdapter() {
@@ -110,6 +97,7 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
                 public void onFaceDetectFail() {
                     super.onFaceDetectFail();
                     LogUtil.i(TAG, "onFaceDetectFail");
+                    showLoadingView(false);
                 }
 
                 @Override
@@ -125,15 +113,46 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
                                 .append(", bottom = ").append(faceRectArray[i * 4 + 3]).append("\n");
                     }
                     LogUtil.i(TAG, "onFaceRectFound: " + sb.toString());
+                    mFaceRectView.setFaceRect(faceRectArray);
+                    showLoadingView(false);
                 }
 
                 @Override
                 public void onNoFaceDetect() {
                     super.onNoFaceDetect();
                     LogUtil.i(TAG, "onNoFaceDetect");
+                    showLoadingView(false);
                 }
             };
         }
         return mFaceDetectAdapter;
+    }
+
+    private void initView() {
+        mIvSrc = findViewById(R.id.iv_src);
+        mFaceRectView = findViewById(R.id.face_view);
+        mLoadingView = findViewById(R.id.loading_view);
+        findViewById(R.id.btn_init_face_detector).setOnClickListener(this);
+        findViewById(R.id.btn_detect).setOnClickListener(this);
+    }
+
+    private void initData() {
+        mMainHandler = new Handler(getMainLooper());
+        AssetsManager.get().executeAsyncTask(new Runnable() {
+            @Override
+            public void run() {
+                AssetsManager.get().copyAssets(AssetsManager.AssetsType.CLASSIFIER);
+            }
+        });
+    }
+
+    private void showLoadingView(boolean show) {
+        LogUtil.i(TAG, "showLoadingView: " + show);
+        mLoadingView.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (show) {
+            mLoadingView.playAnimation();
+        } else {
+            mLoadingView.pauseAnimation();
+        }
     }
 }
