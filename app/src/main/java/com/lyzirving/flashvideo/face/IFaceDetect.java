@@ -18,7 +18,18 @@ public interface IFaceDetect {
     void onFaceRectFound(int[] faceRectArray);
 
     /**
+     * landmark's length is num(face) * 68 * 2;
+     * @param landmarks landmarks of faces
+     */
+    void onLandmarkFound(int[] landmarks);
+
+    /**
      * called when no faces is detected
      */
     void onNoFaceDetect();
+
+    /**
+     * called when no landmark is detected
+     */
+    void noLandmarkDetect();
 }

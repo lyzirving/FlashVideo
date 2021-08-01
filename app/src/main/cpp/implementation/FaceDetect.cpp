@@ -94,17 +94,13 @@ void FaceDetect::callAdapterFail(jobject &adapter) {
     if (detached) sPtrGlobJvm->DetachCurrentThread();
 }
 
-void FaceDetect::callAdapterDetectSuccess(jobject &adapter, std::vector<cv::Rect> &faces) {
+void FaceDetect::callAdapterDetectSuccess(JNIEnv* env, jobject &adapter, std::vector<cv::Rect> &faces) {
     if (adapter == nullptr) {
         LogUtil::logI(TAG, {"callAdapterDetectSuccess: adapter is null"});
         return;
     }
-    JNIEnv *env = nullptr;
-    bool detached = sPtrGlobJvm->GetEnv((void **) &env, JNI_VERSION_1_6) == JNI_EDETACHED;
-    if (detached) sPtrGlobJvm->AttachCurrentThread(&env, nullptr);
-
     jclass adapterClass = env->GetObjectClass(adapter);
-    if (faces.size() == 0) {
+    if (faces.empty()) {
         jmethodID noFaceMethodId = env->GetMethodID(adapterClass, "onNoFaceDetect", "()V");
         env->CallVoidMethod(adapter, noFaceMethodId);
     } else {
@@ -121,8 +117,24 @@ void FaceDetect::callAdapterDetectSuccess(jobject &adapter, std::vector<cv::Rect
         env->CallVoidMethod(adapter, faceFoundMethodId, array);
         env->ReleaseIntArrayElements(array, result, 0);
     }
+}
 
-    if (detached) sPtrGlobJvm->DetachCurrentThread();
+void FaceDetect::callLandmarkDetect(JNIEnv* env, jobject &adapter, int *landmark, int arraySize) {
+    if (adapter == nullptr) {
+        LogUtil::logI(TAG, {"callLandmarkDetect: adapter is null"});
+        return;
+    }
+    jclass adapterClass = env->GetObjectClass(adapter);
+    if (landmark[0] == -1) {
+        jmethodID noLandmarkMethodId = env->GetMethodID(adapterClass, "noLandmarkDetect", "()V");
+        env->CallVoidMethod(adapter, noLandmarkMethodId);
+    } else {
+        jmethodID landmarkFoundMethod = env->GetMethodID(adapterClass, "onLandmarkFound", "([I)V");
+        jintArray array = env->NewIntArray(arraySize);
+        env->SetIntArrayRegion(array, 0, arraySize, landmark);
+        env->CallVoidMethod(adapter, landmarkFoundMethod, array);
+        env->ReleaseIntArrayElements(array, landmark, 0);
+    }
 }
 
 bool FaceDetect::detect() {
@@ -133,6 +145,10 @@ bool FaceDetect::detect() {
         callAdapterFail(adapter);
         return false;
     }
+    JNIEnv *env = nullptr;
+    bool detached = sPtrGlobJvm->GetEnv((void **) &env, JNI_VERSION_1_6) == JNI_EDETACHED;
+    if (detached) sPtrGlobJvm->AttachCurrentThread(&env, nullptr);
+
     cv::Mat gray;
     ImgUtil::mat2Gray(*mPtrImgMat, gray);
     std::vector<cv::Rect> faces;
@@ -141,10 +157,43 @@ bool FaceDetect::detect() {
             1.1f, 4,
             cv::CASCADE_FIND_BIGGEST_OBJECT | cv::CASCADE_DO_ROUGH_SEARCH,
             cv::Size(30, 30));
-    callAdapterDetectSuccess(adapter, faces);
+    callAdapterDetectSuccess(env, adapter, faces);
     LogUtil::logI(TAG, {"detect: detect face rect, size = ", std::to_string(faces.size())});
-
-
+    if (faces.empty()) {
+        LogUtil::logI(TAG, {"detect: no face detect"});
+        if (detached) sPtrGlobJvm->DetachCurrentThread();
+        return false;
+    }
+    cv::Mat bgrMat;
+    cv::cvtColor(*mPtrImgMat, bgrMat, cv::COLOR_RGBA2BGR);
+    dlib::cv_image<dlib::bgr_pixel> bgrPixel(bgrMat);
+    dlib::rectangle faceRect;
+    int* landmark = new int[faces.size() * 68 * 2];
+    landmark[0] = -1;
+    bool landmarkFound = false;
+    for (int i = 0; i < faces.size(); ++i) {
+        faceRect.set_left(faces[i].x);
+        faceRect.set_top(faces[i].y);
+        faceRect.set_right(faces[i].x + faces[i].width);
+        faceRect.set_bottom(faces[i].y + faces[i].height);
+        dlib::full_object_detection detection = mPoseModel(bgrPixel, faceRect);
+        LogUtil::logI(TAG, {"detect: landmark size = ", std::to_string(detection.num_parts())});
+        for (int j = 0; i < detection.num_parts(); ++j) {
+            landmarkFound = true;
+            landmark[68 * i + j * 2] = detection.part(i).x();
+            landmark[68 * i + j * 2 + 1] = detection.part(i).y();
+            LogUtil::logI(TAG, {"detect: index = ", std::to_string(i), "(",
+                                std::to_string(detection.part(i).x()), ", ",
+                                std::to_string(detection.part(i).y()), ")"});
+        }
+    }
+    if (landmarkFound) {
+        callLandmarkDetect(env, adapter, landmark, faces.size() * 68 * 2);
+        delete[] landmark;
+    } else {
+        LogUtil::logI(TAG, {"detect: no landmark found in detection"});
+    }
+    if (detached) sPtrGlobJvm->DetachCurrentThread();
     return true;
 }
 

@@ -11,7 +11,11 @@ public class FaceDetectAdapter implements IFaceDetect {
     public void onFaceRectFound(int[] faceRectArray) {}
 
     @Override
-    public void onNoFaceDetect() {
+    public void onLandmarkFound(int[] landmarks) {}
 
-    }
+    @Override
+    public void onNoFaceDetect() {}
+
+    @Override
+    public void noLandmarkDetect() {}
 }

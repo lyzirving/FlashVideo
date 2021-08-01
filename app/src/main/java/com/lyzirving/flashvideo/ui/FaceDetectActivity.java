@@ -118,9 +118,23 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
                 }
 
                 @Override
+                public void onLandmarkFound(int[] landmarks) {
+                    super.onLandmarkFound(landmarks);
+                    LogUtil.i(TAG, "onLandmarkFound");
+                    showLoadingView(false);
+                }
+
+                @Override
                 public void onNoFaceDetect() {
                     super.onNoFaceDetect();
                     LogUtil.i(TAG, "onNoFaceDetect");
+                    showLoadingView(false);
+                }
+
+                @Override
+                public void noLandmarkDetect() {
+                    super.noLandmarkDetect();
+                    LogUtil.i(TAG, "noLandmarkDetect");
                     showLoadingView(false);
                 }
             };

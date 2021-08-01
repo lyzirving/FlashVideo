@@ -7,7 +7,8 @@ class FaceDetect {
 public:
     static bool registerSelf(JNIEnv *env);
     static void callAdapterFail(jobject &adapter);
-    static void callAdapterDetectSuccess(jobject &adapter, std::vector<cv::Rect> &faces);
+    static void callAdapterDetectSuccess(JNIEnv* env, jobject &adapter, std::vector<cv::Rect> &faces);
+    static void callLandmarkDetect(JNIEnv* env, jobject &adapter, int* landmark, int arraySize);
     FaceDetect() {
         mClassifierPath = nullptr;
         mLandmarkModelPath = nullptr;
