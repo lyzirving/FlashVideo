@@ -64,7 +64,7 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
                     mFaceDetector.destroy();
                 }
                 mFaceDetector = new FaceDetector();
-                mFaceDetector.init(null, getFaceDetectAdapter());
+                mFaceDetector.init(null, null, getFaceDetectAdapter());
                 break;
             }
             case R.id.btn_detect: {
@@ -142,6 +142,7 @@ public class FaceDetectActivity extends AppCompatActivity implements View.OnClic
             @Override
             public void run() {
                 AssetsManager.get().copyAssets(AssetsManager.AssetsType.CLASSIFIER);
+                AssetsManager.get().copyAssets(AssetsManager.AssetsType.LANDMARK);
             }
         });
     }

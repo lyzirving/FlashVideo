@@ -1,3 +1,4 @@
+
 // Copyright (C) 2006  Davis E. King (davis@dlib.net)
 // License: Boost Software License   See LICENSE.txt for the full license.
 
@@ -23,7 +24,26 @@ namespace
     using namespace dlib;
     using namespace std;
 
+    dlib::rand rnd;
+
     logger dlog("test.matrix");
+
+    template <typename type>
+    const matrix<type> rand_sp_banded(long n, long bw)
+    {
+        matrix<type> m = 10 * identity_matrix<type>(n);
+        for (long row = 0; row < m.nr(); ++row)
+        {
+            for (long col = row; col < min(m.nc(), row + bw); ++col)
+            {
+                type r = rnd.get_random_double();
+                m(row,col) += r;
+                m(col,row) += r; 
+            }
+        }
+
+        return m;
+    }
 
     void matrix_test (
     )
@@ -294,6 +314,9 @@ namespace
             serialize(c2,sout);
             serialize(d1,sout);
             serialize(d2,sout);
+            
+            std::vector<int8_t> buf1;
+            dlib::serialize(buf1) << a1 << a2 << b1 << b2 << c1 << c2 << d1 << d2;
 
             DLIB_TEST(a1 == orig1);
             DLIB_TEST(a2 == orig2);
@@ -341,8 +364,27 @@ namespace
             DLIB_TEST(c2 == orig2);
             DLIB_TEST(d1 == orig1);
             DLIB_TEST(d2 == orig2);
-
-
+            
+            set_all_elements(a1,99);
+            set_all_elements(a2,99);
+            set_all_elements(b1,99);
+            set_all_elements(b2,99);
+            set_all_elements(c1,99);
+            set_all_elements(c2,99);
+            set_all_elements(d1,99);
+            set_all_elements(d2,99);
+            
+            std::vector<uint8_t> buf2(buf1.begin(), buf1.end());
+            dlib::deserialize(buf2) >> a1 >> a2 >> b1 >> b2 >> c1 >> c2 >> d1 >> d2;
+            
+            DLIB_TEST(a1 == orig1);
+            DLIB_TEST(a2 == orig2);
+            DLIB_TEST(b1 == orig1);
+            DLIB_TEST(b2 == orig2);
+            DLIB_TEST(c1 == orig1);
+            DLIB_TEST(c2 == orig2);
+            DLIB_TEST(d1 == orig1);
+            DLIB_TEST(d2 == orig2);
         }
 
         {
@@ -672,6 +714,13 @@ namespace
 
         }
 
+    }
+
+
+    void matrix_test2()
+    {
+        print_spinner();
+
 
         {
 
@@ -721,6 +770,28 @@ namespace
             DLIB_TEST_MSG(equal(round_zeros(inv_lower_triangular((L))*(L),1e-10) ,identity_matrix<double>(6), 1e-10),
                          round_zeros(inv_lower_triangular((L))*(L),1e-10)); 
 
+        }
+
+        {
+            // Test band chol
+            matrix<double> m = rand_sp_banded<double>(10, 3);
+
+            matrix<double> L = chol(m);
+            DLIB_TEST_MSG(equal(L*trans(L), m, 1e-10), L*trans(L)-m);   
+            DLIB_TEST_MSG(equal(inv(m), inv_upper_triangular(trans(L))*inv_lower_triangular((L))), "");
+            DLIB_TEST_MSG(equal(inv(m), trans(inv_lower_triangular(L))*inv_lower_triangular((L))), ""); 
+            DLIB_TEST_MSG(equal(inv(m), trans(inv_lower_triangular(L))*trans(inv_upper_triangular(trans(L)))), "");
+        }
+
+        {
+            // Test band chol in column major layout
+            matrix<double,10,10,default_memory_manager,column_major_layout> m(rand_sp_banded<double>(10, 3));
+
+            matrix<double> L = chol(m);
+            DLIB_TEST_MSG(equal(L*trans(L), m, 1e-10), L*trans(L)-m);   
+            DLIB_TEST_MSG(equal(inv(m), inv_upper_triangular(trans(L))*inv_lower_triangular((L))), "");
+            DLIB_TEST_MSG(equal(inv(m), trans(inv_lower_triangular(L))*inv_lower_triangular((L))), ""); 
+            DLIB_TEST_MSG(equal(inv(m), trans(inv_lower_triangular(L))*trans(inv_upper_triangular(trans(L)))), "");
         }
 
         {
@@ -1011,6 +1082,8 @@ namespace
             DLIB_TEST(subm(m,range(1,1),range(0,2)) == rowm(m,1));
             DLIB_TEST(subm(m,range(2,2),range(0,2)) == rowm(m,2));
             DLIB_TEST(subm(m,range(3,3),range(0,2)) == rowm(m,3));
+            DLIB_TEST(rowm(m,matrix<long>()).size()==0);
+            DLIB_TEST(colm(m,matrix<long>()).size()==0);
 
             DLIB_TEST(subm(m,0,0,2,2) == subm(m,range(0,1),range(0,1)));
             DLIB_TEST(subm(m,1,1,2,2) == subm(m,range(1,2),range(1,2)));
@@ -1057,6 +1130,28 @@ namespace
         }
 
         {
+            matrix<double> a = randm(3,4);
+            matrix<double> b = randm(3,4);
+
+            matrix<double> m1, m2;
+
+            m1 = max_pointwise(a,b);
+            m2 = min_pointwise(a,b);
+            DLIB_TEST(m1.nr() == a.nr());
+            DLIB_TEST(m1.nc() == a.nc());
+            DLIB_TEST(m2.nr() == a.nr());
+            DLIB_TEST(m2.nc() == a.nc());
+            for (long r = 0; r < a.nr(); ++r)
+            {
+                for (long c = 0; c < a.nc(); ++c)
+                {
+                    DLIB_TEST_MSG(m1(r,c) == std::max(a(r,c), b(r,c)), m1(r,c)  << " : " << a(r,c) << " " << b(r,c));
+                    DLIB_TEST(m2(r,c) == std::min(a(r,c), b(r,c)));
+                }
+            }
+        }
+
+        {
             matrix<double,4,5> m;
             set_subm(m, range(0,3), range(0,4)) = 4;
             DLIB_TEST(min(m) == max(m) && min(m) == 4);
@@ -1093,6 +1188,10 @@ namespace
             DLIB_TEST((complex_matrix(ones_matrix<double>(3,3), zeros_matrix<double>(3,3)) == complex_matrix(ones_matrix<double>(3,3))));
             DLIB_TEST((pointwise_multiply(complex_matrix(ones_matrix<double>(3,3)), ones_matrix<double>(3,3)*2) ==
                        complex_matrix(2*ones_matrix<double>(3,3))));
+            DLIB_TEST((pointwise_divide(complex_matrix(ones_matrix<double>(3,3)), ones_matrix<double>(3,3)) ==
+                       complex_matrix(ones_matrix<double>(3,3))));
+            DLIB_TEST((pointwise_divide(complex_matrix(zeros_matrix<double>(3,3)), ones_matrix<double>(3,3)) ==
+                       complex_matrix(zeros_matrix<double>(3,3))));
         }
 
         {
@@ -1326,6 +1425,21 @@ namespace
             matrix<double> m1, m2, m3, truth;
             m1 = randm(n,n);
             m2 = randm(n,n);
+
+            rectangle rect1(1,1,3,3);
+            rectangle rect2(2,1,4,3);
+
+            truth = subm(m1,rect1)*subm(m2,rect2);
+            m3 = mat(&m1(0,0)+6, 3,3, m1.nc()) * mat(&m2(0,0)+7, 3,3, m2.nc());
+
+            DLIB_TEST(max(abs(truth-m3)) < 1e-13);
+        }
+
+        {
+            const long n = 5;
+            matrix<double> m1, m2, m3, truth;
+            m1 = randm(n,n);
+            m2 = randm(n,n);
             m3 = randm(n,n);
 
 
@@ -1365,6 +1479,62 @@ namespace
 
         }
 
+        {
+            matrix<double,3,3,default_memory_manager,column_major_layout> a(3,3);
+            matrix<double,3,3,default_memory_manager,column_major_layout> m = randm(3,3);
+            matrix<double,3,1,default_memory_manager,column_major_layout> b = randm(3,1);
+
+            a = 0;
+            set_colm(a,0) = m*b;
+            DLIB_TEST(colm(a,0) == m*b);
+            a = 0;
+            set_rowm(a,0) = trans(m*b);
+            DLIB_TEST(rowm(a,0) == trans(m*b));
+            DLIB_TEST(rowm(a,0) != m*b);
+        }
+        {
+            matrix<double,0,0,default_memory_manager,column_major_layout> a(3,3);
+            matrix<double,0,0,default_memory_manager,column_major_layout> m = randm(3,3);
+            matrix<double,0,0,default_memory_manager,column_major_layout> b = randm(3,1);
+
+            a = 0;
+            set_colm(a,0) = m*b;
+            DLIB_TEST(equal(colm(a,0) , m*b));
+            a = 0;
+            set_rowm(a,0) = trans(m*b);
+            DLIB_TEST(equal(rowm(a,0) , trans(m*b)));
+            DLIB_TEST(!equal(rowm(a,0) , m*b));
+        }
+        {
+            matrix<double> a(3,3);
+            matrix<double> m = randm(3,3);
+            matrix<double> b = randm(3,1);
+
+            a = 0;
+            set_colm(a,0) = m*b;
+            DLIB_TEST(equal(colm(a,0) , m*b));
+            a = 0;
+            set_rowm(a,0) = trans(m*b);
+            DLIB_TEST(equal(rowm(a,0) , trans(m*b)));
+            DLIB_TEST(!equal(rowm(a,0) , m*b));
+        }
+        {
+            matrix<double> x, y;
+            x = 10 * gaussian_randm(100, 1) - 10;
+            y = soft_max(x);
+
+            double max_val = -std::numeric_limits<double>::infinity();
+            for (const auto i : x)
+                max_val = std::max(max_val, i);
+
+            double sum_exps = 0;
+            for (const auto i : x)
+                sum_exps += std::exp(i - max_val);
+            double scale = 1.0 / sum_exps;
+
+            for (long i = 0; i < x.nr(); ++i)
+                DLIB_CASSERT(y(i) == std::exp(x(i) - max_val) * scale);
+        }
     }
 
 
@@ -1385,6 +1555,7 @@ namespace
         )
         {
             matrix_test();
+            matrix_test2();
         }
     } a;
 

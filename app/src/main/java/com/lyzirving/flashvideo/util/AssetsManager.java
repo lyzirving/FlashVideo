@@ -153,6 +153,7 @@ public class AssetsManager {
             case VIDEO: {
                 return FileUtil.MOVIE_CACHE_DIR;
             }
+            case LANDMARK:
             case CLASSIFIER: {
                 return FileUtil.DOC_CACHE_DIR;
             }
@@ -172,6 +173,9 @@ public class AssetsManager {
             }
             case CLASSIFIER: {
                 return "classifier";
+            }
+            case LANDMARK: {
+                return "landmark";
             }
             default: {
                 return "";
@@ -211,7 +215,11 @@ public class AssetsManager {
         /**
          * classifier
          */
-        CLASSIFIER;
+        CLASSIFIER,
+        /**
+         * landmark
+         */
+        LANDMARK;
     }
 
     public interface AssetsListener {

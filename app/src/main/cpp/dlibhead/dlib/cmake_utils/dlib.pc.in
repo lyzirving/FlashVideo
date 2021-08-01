@@ -1,11 +1,8 @@
-prefix=@CMAKE_INSTALL_PREFIX@
-exec_prefix=${prefix}
-libdir=${exec_prefix}/@LIB_INSTALL_DIR@
-includedir=${prefix}/include
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 
 Name: @PROJECT_NAME@
 Description: Numerical and networking C++ library
 Version: @VERSION@
-Libs: -L${libdir} -ldlib
-Cflags: -I${includedir}
-Requires:@REQUIRES_LIBS@
+Libs: -L${libdir} -ldlib @pkg_config_dlib_needed_libraries@
+Cflags: -I${includedir} @pkg_config_dlib_needed_includes@

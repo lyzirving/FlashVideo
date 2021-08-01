@@ -10,6 +10,7 @@ public:
     static void callAdapterDetectSuccess(jobject &adapter, std::vector<cv::Rect> &faces);
     FaceDetect() {
         mClassifierPath = nullptr;
+        mLandmarkModelPath = nullptr;
         mPtrClassifier = nullptr;
         mPtrImgMat = nullptr;
     }
@@ -19,13 +20,18 @@ public:
 
     bool detect();
     bool initClassifier();
+    bool initFrontFaceDetector();
     void release();
     void setClassifierPath(char* path);
+    void setLandmarkModelPath(char* path);
     void setImgMat(cv::Mat& mat);
 private:
     char* mClassifierPath;
+    char* mLandmarkModelPath;
     cv::CascadeClassifier* mPtrClassifier;
     cv::Mat* mPtrImgMat;
+    dlib::frontal_face_detector mFrontFaceDetector;
+    dlib::shape_predictor mPoseModel;
 };
 
 #endif //FLASHVIDEO_FACEDETECT_H

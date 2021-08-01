@@ -125,6 +125,19 @@ namespace dlib
         unsigned char red;
         unsigned char green;
         unsigned char blue;
+
+        bool operator == (const rgb_pixel& that) const
+        {
+            return this->red   == that.red
+                && this->green == that.green
+                && this->blue  == that.blue;
+        }
+
+        bool operator != (const rgb_pixel& that) const
+        {
+            return !(*this == that);
+        }
+
     };
 
 // ----------------------------------------------------------------------------------------
@@ -151,6 +164,19 @@ namespace dlib
         unsigned char blue;
         unsigned char green;
         unsigned char red;
+
+        bool operator == (const bgr_pixel& that) const
+        {
+            return this->blue  == that.blue
+                && this->green == that.green
+                && this->red   == that.red;
+        }
+
+        bool operator != (const bgr_pixel& that) const
+        {
+            return !(*this == that);
+        }
+
     };
 
 // ----------------------------------------------------------------------------------------
@@ -177,6 +203,20 @@ namespace dlib
         unsigned char green;
         unsigned char blue;
         unsigned char alpha;
+
+        bool operator == (const rgb_alpha_pixel& that) const
+        {
+            return this->red   == that.red
+                && this->green == that.green
+                && this->blue  == that.blue
+                && this->alpha == that.alpha;
+        }
+
+        bool operator != (const rgb_alpha_pixel& that) const
+        {
+            return !(*this == that);
+        }
+
     };
 
 // ----------------------------------------------------------------------------------------
@@ -200,7 +240,21 @@ namespace dlib
         unsigned char h;
         unsigned char s;
         unsigned char i;
+
+        bool operator == (const hsi_pixel& that) const
+        {
+            return this->h == that.h
+                && this->s == that.s
+                && this->i == that.i;
+        }
+
+        bool operator != (const hsi_pixel& that) const
+        {
+            return !(*this == that);
+        }
+
     };
+
     // ----------------------------------------------------------------------------------------
 
     struct lab_pixel
@@ -222,7 +276,20 @@ namespace dlib
         unsigned char l;
         unsigned char a;
         unsigned char b;
-    };
+
+        bool operator == (const lab_pixel& that) const
+        {
+            return this->l == that.l
+                && this->a == that.a
+                && this->b == that.b;
+        }
+
+        bool operator != (const lab_pixel& that) const
+        {
+            return !(*this == that);
+        }
+
+    };    
 
 // ----------------------------------------------------------------------------------------
 
@@ -406,17 +473,17 @@ namespace dlib
     template <>
     struct pixel_traits<rgb_pixel>
     {
-        const static bool rgb  = true;
-        const static bool rgb_alpha  = false;
-        const static bool grayscale = false;
-        const static bool hsi = false;
-        const static bool lab = false;
-        enum {num = 3};
+        constexpr static bool rgb  = true;
+        constexpr static bool rgb_alpha  = false;
+        constexpr static bool grayscale = false;
+        constexpr static bool hsi = false;
+        constexpr static bool lab = false;
+        enum { num = 3};
         typedef unsigned char basic_pixel_type;
         static basic_pixel_type min() { return 0;}
         static basic_pixel_type max() { return 255;}
-        const static bool is_unsigned = true;
-        const static bool has_alpha = false;
+        constexpr static bool is_unsigned = true;
+        constexpr static bool has_alpha = false;
     };
 
 // ----------------------------------------------------------------------------------------
@@ -424,17 +491,17 @@ namespace dlib
     template <>
     struct pixel_traits<bgr_pixel>
     {
-        const static bool rgb  = true;
-        const static bool rgb_alpha  = false;
-        const static bool grayscale = false;
-        const static bool hsi = false;
-        const static bool lab = false;
-        enum {num = 3};
+        constexpr static bool rgb  = true;
+        constexpr static bool rgb_alpha  = false;
+        constexpr static bool grayscale = false;
+        constexpr static bool hsi = false;
+        constexpr static bool lab = false;
+        constexpr static long num = 3;
         typedef unsigned char basic_pixel_type;
         static basic_pixel_type min() { return 0;}
         static basic_pixel_type max() { return 255;}
-        const static bool is_unsigned = true;
-        const static bool has_alpha = false;
+        constexpr static bool is_unsigned = true;
+        constexpr static bool has_alpha = false;
     };
 
 // ----------------------------------------------------------------------------------------
@@ -442,17 +509,17 @@ namespace dlib
     template <>
     struct pixel_traits<rgb_alpha_pixel>
     {
-        const static bool rgb  = false;
-        const static bool rgb_alpha  = true;
-        const static bool grayscale = false;
-        const static bool hsi = false;
-        const static bool lab = false;
-        enum {num = 4};
+        constexpr static bool rgb  = false;
+        constexpr static bool rgb_alpha  = true;
+        constexpr static bool grayscale = false;
+        constexpr static bool hsi = false;
+        constexpr static bool lab = false;
+        constexpr static long num = 4;
         typedef unsigned char basic_pixel_type;
         static basic_pixel_type min() { return 0;}
         static basic_pixel_type max() { return 255;}
-        const static bool is_unsigned = true;
-        const static bool has_alpha = true;
+        constexpr static bool is_unsigned = true;
+        constexpr static bool has_alpha = true;
     };
 
 // ----------------------------------------------------------------------------------------
@@ -461,17 +528,17 @@ namespace dlib
     template <>
     struct pixel_traits<hsi_pixel>
     {
-        const static bool rgb  = false;
-        const static bool rgb_alpha  = false;
-        const static bool grayscale = false;
-        const static bool hsi = true;
-        const static bool lab = false;
-        enum {num = 3};
+        constexpr static bool rgb  = false;
+        constexpr static bool rgb_alpha  = false;
+        constexpr static bool grayscale = false;
+        constexpr static bool hsi = true;
+        constexpr static bool lab = false;
+        constexpr static long num = 3;
         typedef unsigned char basic_pixel_type;
         static basic_pixel_type min() { return 0;}
         static basic_pixel_type max() { return 255;}
-        const static bool is_unsigned = true;
-        const static bool has_alpha = false;
+        constexpr static bool is_unsigned = true;
+        constexpr static bool has_alpha = false;
     };
 
 // ----------------------------------------------------------------------------------------
@@ -480,17 +547,17 @@ namespace dlib
     template <>
     struct pixel_traits<lab_pixel>
     {
-        const static bool rgb  = false;
-        const static bool rgb_alpha  = false;
-        const static bool grayscale = false;
-        const static bool hsi = false;
-        const static bool lab = true;
-        const static long num = 3;
+        constexpr static bool rgb  = false;
+        constexpr static bool rgb_alpha  = false;
+        constexpr static bool grayscale = false;
+        constexpr static bool hsi = false;
+        constexpr static bool lab = true;
+        constexpr static long num = 3;
         typedef unsigned char basic_pixel_type;
         static basic_pixel_type min() { return 0;}
         static basic_pixel_type max() { return 255;}
-        const static bool is_unsigned = true;
-        const static bool has_alpha = false;
+        constexpr static bool is_unsigned = true;
+        constexpr static bool has_alpha = false;
     };
 
 // ----------------------------------------------------------------------------------------
@@ -498,17 +565,17 @@ namespace dlib
     template <typename T>
     struct grayscale_pixel_traits
     {
-        const static bool rgb  = false;
-        const static bool rgb_alpha  = false;
-        const static bool grayscale = true;
-        const static bool hsi = false;
-        const static bool lab = false;
-        enum {num = 1};
-        const static bool has_alpha = false;
+        constexpr static bool rgb  = false;
+        constexpr static bool rgb_alpha  = false;
+        constexpr static bool grayscale = true;
+        constexpr static bool hsi = false;
+        constexpr static bool lab = false;
+        constexpr static long num = 1;
+        constexpr static bool has_alpha = false;
         typedef T basic_pixel_type;
         static basic_pixel_type min() { return std::numeric_limits<T>::min();}
         static basic_pixel_type max() { return std::numeric_limits<T>::max();}
-        const static bool is_unsigned = is_unsigned_type<T>::value;
+        constexpr static bool is_unsigned = is_unsigned_type<T>::value;
     };
 
     template <> struct pixel_traits<unsigned char>  : public grayscale_pixel_traits<unsigned char> {};
@@ -530,17 +597,17 @@ namespace dlib
     template <typename T>
     struct float_grayscale_pixel_traits
     {
-        const static bool rgb  = false;
-        const static bool rgb_alpha  = false;
-        const static bool grayscale = true;
-        const static bool hsi = false;
-        const static bool lab = false;
-        enum {num = 1};
-        const static bool has_alpha = false;
+        constexpr static bool rgb  = false;
+        constexpr static bool rgb_alpha  = false;
+        constexpr static bool grayscale = true;
+        constexpr static bool hsi = false;
+        constexpr static bool lab = false;
+        constexpr static long num = 1;
+        constexpr static bool has_alpha = false;
         typedef T basic_pixel_type;
         static basic_pixel_type min() { return -std::numeric_limits<T>::max();}
         static basic_pixel_type max() { return std::numeric_limits<T>::max();}
-        const static bool is_unsigned = false;
+        constexpr static bool is_unsigned = false;
     };
 
     template <> struct pixel_traits<float>          : public float_grayscale_pixel_traits<float> {};
@@ -942,9 +1009,9 @@ namespace dlib
             }
 
             //clamping
-            c2.l = max(0.0, (116.0 * var_Y) - 16);
-            c2.a = max(-128.0, min(127.0, 500.0 * (var_X - var_Y)));
-            c2.b = max(-128.0, min(127.0, 200.0 * (var_Y - var_Z)));
+            c2.l = std::max(0.0, (116.0 * var_Y) - 16);
+            c2.a = std::max(-128.0, std::min(127.0, 500.0 * (var_X - var_Y)));
+            c2.b = std::max(-128.0, std::min(127.0, 200.0 * (var_Y - var_Z)));
 
             return c2;
         }
@@ -1013,9 +1080,9 @@ namespace dlib
             }
 
             // clamping
-            c2.r = max(0.0, min(1.0, var_R));
-            c2.g = max(0.0, min(1.0, var_G));
-            c2.b = max(0.0, min(1.0, var_B));
+            c2.r = std::max(0.0, std::min(1.0, var_R));
+            c2.g = std::max(0.0, std::min(1.0, var_G));
+            c2.b = std::max(0.0, std::min(1.0, var_B));
 
             return (c2);
         }

@@ -3,10 +3,11 @@
 #ifndef DLIB_BASE_WIDGETs_CPP_
 #define DLIB_BASE_WIDGETs_CPP_
 
+#include <iostream>
+#include <memory>
+
 #include "base_widgets.h"
 #include "../assert.h"
-#include <iostream>
-
 
 namespace dlib
 {
@@ -133,7 +134,7 @@ namespace dlib
 
     void button::
     set_main_font (
-        const shared_ptr_thread_safe<font>& f
+        const std::shared_ptr<font>& f
     )
     {
         auto_mutex M(m);
@@ -561,7 +562,7 @@ namespace dlib
                 // this case here covers the unlikly event that you click on a button,
                 // move the mouse off the button and then move it back very quickly and
                 // release the mouse button.   It is possible that this mouse up event
-                // will occurr before any mouse move event so you might not have set
+                // will occur before any mouse move event so you might not have set
                 // that the button is depressed yet.
                 
                 // So we should say that this triggers an on_button_down() event and
@@ -1398,7 +1399,7 @@ namespace dlib
 
 // ----------------------------------------------------------------------------------------
 
-    unsigned long widget_group::
+    size_t widget_group::
     size (
     ) const 
     {  
@@ -1577,7 +1578,7 @@ namespace dlib
 
 // ----------------------------------------------------------------------------------------
 
-    unsigned long popup_menu::
+    size_t popup_menu::
     size (
     ) const
     { 

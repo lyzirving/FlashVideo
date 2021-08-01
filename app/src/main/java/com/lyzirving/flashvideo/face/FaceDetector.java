@@ -14,6 +14,7 @@ public class FaceDetector {
     private static final String TAG = "FaceDetector";
     private static final int INVALID_PTR = -1;
     private static final String DEFAULT_CLASSIFIER_PATH = FileUtil.DOC_CACHE_DIR + "/" + "haarcascade_frontalface_default.xml";
+    private static final String DEFAULT_LANDMARK_PATH = FileUtil.DOC_CACHE_DIR + "/" + "shape_predictor_68_face_landmarks.dat";
     private long mPtr = INVALID_PTR;
 
     public FaceDetector() {
@@ -40,7 +41,7 @@ public class FaceDetector {
         nativeDestroy(mPtr);
     }
 
-    public boolean init(String classifierPath, FaceDetectAdapter adapter) {
+    public boolean init(String classifierPath, String landmarkPath, FaceDetectAdapter adapter) {
         if (mPtr == INVALID_PTR) {
             LogUtil.i(TAG, "init: invalid ptr");
             return false;
@@ -49,11 +50,15 @@ public class FaceDetector {
             LogUtil.i(TAG, "init: classifier path is null, use default");
             classifierPath = DEFAULT_CLASSIFIER_PATH;
         }
-        return nativeInit(mPtr, classifierPath, adapter);
+        if (TextUtils.isEmpty(landmarkPath)) {
+            LogUtil.i(TAG, "init: landmark path is null, use default");
+            landmarkPath = DEFAULT_LANDMARK_PATH;
+        }
+        return nativeInit(mPtr, classifierPath, landmarkPath, adapter);
     }
 
     private static native long nativeConstruct();
     private static native void nativeDestroy(long ptr);
     private static native boolean nativeDetect(long ptr, Bitmap bmp);
-    private static native boolean nativeInit(long ptr, String classifierPath, FaceDetectAdapter adapter);
+    private static native boolean nativeInit(long ptr, String classifierPath, String landmarkPath, FaceDetectAdapter adapter);
 }

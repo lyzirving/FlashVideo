@@ -4,6 +4,7 @@
 
 #define TAG "FaceDetect"
 #define JAVA_CLASS "com/lyzirving/flashvideo/face/FaceDetector"
+#define DETECT_SCALE_RATIO 4.0
 
 static JavaVM* sPtrGlobJvm = nullptr;
 static std::map<jlong, jobject> sGlobFaceDetectAdapter;
@@ -33,13 +34,25 @@ static void nDestroy(JNIEnv *env, jclass clazz, jlong ptr) {
     }
 }
 
-static jboolean nInit(JNIEnv *env, jclass clazz, jlong ptr, jstring jpath, jobject adapter) {
+static jboolean nInit(JNIEnv *env, jclass clazz, jlong ptr, jstring classifierPath,
+        jstring landmarkPath, jobject adapter) {
     auto* p_face_detect = reinterpret_cast<FaceDetect *>(ptr);
-    char* c_path = const_cast<char *>(env->GetStringUTFChars(jpath, 0));
-    p_face_detect->setClassifierPath(c_path);
-    env->ReleaseStringUTFChars(jpath, c_path);
+
+    char* cClassifierPath = const_cast<char *>(env->GetStringUTFChars(classifierPath, 0));
+    p_face_detect->setClassifierPath(cClassifierPath);
+    env->ReleaseStringUTFChars(classifierPath, cClassifierPath);
+
+    char* cLandmarkPah = const_cast<char *>(env->GetStringUTFChars(landmarkPath, 0));
+    p_face_detect->setLandmarkModelPath(cLandmarkPah);
+    env->ReleaseStringUTFChars(classifierPath, cLandmarkPah);
+
     sGlobFaceDetectAdapter.insert(std::pair<jlong, jobject >(ptr, env->NewGlobalRef(adapter)));
-    return p_face_detect->initClassifier();
+    bool success = p_face_detect->initClassifier();
+    if (!success) {
+        LogUtil::logI(TAG, {"nInit: failed to init face classifier"});
+        return success;
+    }
+    return p_face_detect->initFrontFaceDetector();
 }
 
 static JNINativeMethod jni_methods[] = {
@@ -50,7 +63,7 @@ static JNINativeMethod jni_methods[] = {
         },
         {
                 "nativeInit",
-                "(JLjava/lang/String;Lcom/lyzirving/flashvideo/face/FaceDetectAdapter;)Z",
+                "(JLjava/lang/String;Ljava/lang/String;Lcom/lyzirving/flashvideo/face/FaceDetectAdapter;)Z",
                 (void *) nInit
         },
         {
@@ -129,7 +142,9 @@ bool FaceDetect::detect() {
             cv::CASCADE_FIND_BIGGEST_OBJECT | cv::CASCADE_DO_ROUGH_SEARCH,
             cv::Size(30, 30));
     callAdapterDetectSuccess(adapter, faces);
-    LogUtil::logI(TAG, {"detect: result face = ", std::to_string(faces.size())});
+    LogUtil::logI(TAG, {"detect: detect face rect, size = ", std::to_string(faces.size())});
+
+
     return true;
 }
 
@@ -146,6 +161,13 @@ bool FaceDetect::initClassifier() {
         return false;
     }
     LogUtil::logI(TAG, {"initClassifier: success"});
+    return true;
+}
+
+bool FaceDetect::initFrontFaceDetector() {
+    mFrontFaceDetector = dlib::get_frontal_face_detector();
+    dlib::deserialize(mLandmarkModelPath) >> mPoseModel;
+    LogUtil::logI(TAG, {"initFrontFaceDetector"});
     return true;
 }
 
@@ -172,6 +194,10 @@ void FaceDetect::release() {
         free(mClassifierPath);
         mClassifierPath = nullptr;
     }
+    if (mLandmarkModelPath != nullptr) {
+        free(mLandmarkModelPath);
+        mLandmarkModelPath = nullptr;
+    }
     if (mPtrClassifier != nullptr) {
         delete mPtrClassifier;
         mPtrClassifier = nullptr;
@@ -190,6 +216,15 @@ void FaceDetect::setClassifierPath(char *path) {
     }
     mClassifierPath = static_cast<char *>(malloc(std::strlen(path) + 1));
     std:strcpy(mClassifierPath, path);
+}
+
+void FaceDetect::setLandmarkModelPath(char *path) {
+    if (path == nullptr || std::strlen(path) == 0) {
+        LogUtil::logE(TAG, {"setLandmarkModelPath: input is empty"});
+        return;
+    }
+    mLandmarkModelPath = static_cast<char *>(malloc(std::strlen(path) + 1));
+    std:strcpy(mLandmarkModelPath, path);
 }
 
 void FaceDetect::setImgMat(cv::Mat &mat) {

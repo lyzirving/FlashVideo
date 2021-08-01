@@ -4,14 +4,14 @@ set(FFMPEG_HEAD ${CMAKE_SOURCE_DIR}/ffmpeghead)
 set(SOUND_TOUCH_HEAD ${CMAKE_SOURCE_DIR}/soundtouchhead)
 set(OPENCV_HEAD ${CMAKE_SOURCE_DIR}/opencvhead)
 set(HEAR_DIR ${CMAKE_SOURCE_DIR}/include)
-set(DLIB_DIR_HEAD ${CMAKE_SOURCE_DIR}/dlibhead)
+set(DLIB_HEAD ${CMAKE_SOURCE_DIR}/dlibhead)
 set(SHARED_DIR ${CMAKE_SOURCE_DIR}/shared)
 
 include_directories(${FFMPEG_HEAD})
 include_directories(${SOUND_TOUCH_HEAD})
 include_directories(${OPENCV_HEAD})
-include_directories(${DLIB_DIR_HEAD})
 include_directories(${HEAR_DIR})
+include_directories(${DLIB_HEAD})
 
 add_library(
         avcodec
@@ -117,25 +117,13 @@ set_target_properties(
         # value
         ${SHARED_DIR}/${ANDROID_ABI}/libopencv_java4.so)
 
-add_library(
-        dlib
-        SHARED
-        IMPORTED)
-
-set_target_properties(
-        # lib name
-        dlib
-        # property
-        PROPERTIES IMPORTED_LOCATION
-        # value
-        ${SHARED_DIR}/${ANDROID_ABI}/libandroid_dlib.so)
-
 aux_source_directory(${CMAKE_SOURCE_DIR}/implementation CPP_DIR)
 aux_source_directory(${CMAKE_SOURCE_DIR}/soundtouch SOUND_TOUCH_CPP_DIR)
 
 add_library( native-lib
              SHARED
-             native-lib.cpp ${CPP_DIR} ${SOUND_TOUCH_CPP_DIR})
+             native-lib.cpp ${CPP_DIR} ${SOUND_TOUCH_CPP_DIR}
+             ${DLIB_HEAD}/dlib/all/source.cpp)
 
 find_library( # name of the lib
               lib-log
@@ -159,6 +147,5 @@ target_link_libraries( # Specifies the target library.
                        swresample
                        swscale
                        opencv_java4
-                       dlib
                        ${lib-log}
                        ${lib-opensl})

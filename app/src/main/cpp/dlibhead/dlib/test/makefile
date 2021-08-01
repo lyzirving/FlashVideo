@@ -6,7 +6,7 @@ TARGET = dtest
 
 # these are the compile time flags passed to gcc
 CXXFLAGS ?= -ggdb -Wall
-CPPFLAGS ?= -DDEBUG -DDLIB_NO_GUI_SUPPORT -I../..
+CPPFLAGS ?= -std=c++11 -DDEBUG -DDLIB_NO_GUI_SUPPORT -I../..
 
 # These are the link time flags passed to gcc
 LFLAGS = -lpthread   -lnsl 
@@ -131,7 +131,6 @@ SRC += serialize.cpp
 SRC += set.cpp
 SRC += sldf.cpp
 SRC += sliding_buffer.cpp
-SRC += smart_pointers.cpp
 SRC += sockets2.cpp
 SRC += sockets.cpp
 SRC += sockstreambuf.cpp

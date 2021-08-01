@@ -2,15 +2,17 @@
 // License: Boost Software License   See LICENSE.txt for the full license.
 #ifndef DLIB_IGG_FONT_RENDERER_H_
 #define DLIB_IGG_FONT_RENDERER_H_
+#ifndef DLIB_NO_GUI_SUPPORT
+
 #include "../platform.h"
 
 
-#include "../gui_widgets.h"
+#include "../gui_widgets/fonts.h"
 #include "../unicode.h"
-#include "../smart_pointers_thread_safe.h"
 #include "../uintn.h"
 
 #include <map>
+#include <memory>
 
 #include <stdio.h>
 #include <string.h>
@@ -20,7 +22,7 @@
 #if defined(WIN32)
 #include <windows.h>
 #include <mbstring.h>
-#elif defined(POSIX)
+#elif defined(DLIB_POSIX)
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -295,7 +297,7 @@ namespace nativefont
                 ~vals_internal(){
                     destroy();
                 }
-#elif defined(POSIX)
+#elif defined(DLIB_POSIX)
                 XImage *ximg;
                 Display *d;
                 GC gc;
@@ -546,10 +548,10 @@ namespace nativefont
             return (*this)[ch].width() > 0;
         }
 
-        static const dlib::shared_ptr_thread_safe<font>& get_font (
+        static const std::shared_ptr<font>& get_font (
         )
         {
-            static dlib::shared_ptr_thread_safe<font> f(new native_font);
+            static std::shared_ptr<font> f(new native_font);
             return f;
         }
 
@@ -608,5 +610,6 @@ namespace nativefont
 
 }
 
+#endif // DLIB_NO_GUI_SUPPORT
 #endif // DLIB_IGG_FONT_RENDERER_H_
 

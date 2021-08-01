@@ -4,6 +4,7 @@
 #define DLIB_RAND_KERNEl_1_
 
 #include <string>
+#include <complex>
 #include "../algs.h"
 #include "rand_kernel_abstract.h"
 #include "mersenne_twister.h"
@@ -137,6 +138,44 @@ namespace dlib
                 return (a<<32)|b;
             }
 
+            double get_double_in_range (
+                double begin,
+                double end
+            )
+            {
+                DLIB_ASSERT(begin <= end);
+                return begin + get_random_double()*(end-begin);
+            }
+
+            long long get_integer_in_range(
+                long long begin,
+                long long end
+            )
+            {
+                DLIB_ASSERT(begin <= end);
+                if (begin == end)
+                    return begin;
+
+                auto r = get_random_64bit_number();
+                const auto limit = std::numeric_limits<decltype(r)>::max();
+                const auto range = end-begin;
+                // Use rejection sampling to remove the biased sampling you would get with
+                // the naive get_random_64bit_number()%range sampling. 
+                while(r >= (limit/range)*range)
+                    r = get_random_64bit_number();
+
+                return begin + static_cast<long long>(r%range);
+            }
+
+            long long get_integer(
+                long long end
+            )
+            {
+                DLIB_ASSERT(end >= 0);
+
+                return get_integer_in_range(0,end);
+            }
+
             double get_random_double (
             )
             {
@@ -188,16 +227,10 @@ namespace dlib
                     return 1.0f - std::numeric_limits<float>::epsilon();
                 }
             }
-
-            double get_random_gaussian (
+  
+            std::complex<double> get_random_complex_gaussian (
             )
             {
-                if (has_gaussian)
-                {
-                    has_gaussian = false;
-                    return next_gaussian;
-                }
-
                 double x1, x2, w;
 
                 const double rndmax = std::numeric_limits<dlib::uint32>::max();
@@ -214,11 +247,49 @@ namespace dlib
                 } while ( w >= 1.0 );
 
                 w = std::sqrt( (-2.0 * std::log( w ) ) / w );
-                next_gaussian = x2 * w;
-                has_gaussian = true;
-                return x1 * w;
+                return std::complex<double>(x1 * w, x2 * w);
             }
 
+            double get_random_gaussian (
+            )
+            {
+                if (has_gaussian)
+                {
+                    has_gaussian = false;
+                    return next_gaussian;
+                }
+                
+                std::complex<double> r = get_random_complex_gaussian();
+                next_gaussian = r.imag();
+                has_gaussian = true;
+                return r.real();
+            }
+
+            double get_random_exponential (
+                double lambda
+            )
+            {
+                DLIB_ASSERT(lambda > 0, "lambda must be greater than zero");
+                double u = 0.0;
+                while (u == 0.0)
+                    u = get_random_double();
+                return -std::log( u ) / lambda;
+            }
+
+            double get_random_weibull (
+                double lambda,
+                double k,
+                double gamma
+            )
+            {
+                DLIB_ASSERT(k > 0, "k must be greater than zero");
+                DLIB_ASSERT(lambda > 0, "lambda must be greater than zero");
+                double u = 0.0;
+                while (u == 0.0)
+                    u = get_random_double();
+                return gamma + lambda*std::pow(-std::log(u), 1.0 / k);
+            }
+            
             void swap (
                 rand& item
             )
@@ -250,7 +321,7 @@ namespace dlib
                 max_val =  0xFFFFFF;
                 max_val *= 0x1000000;
                 max_val += 0xFFFFFF;
-                max_val += 0.01;
+                max_val += 0.05;
 
 
                 has_gaussian = false;

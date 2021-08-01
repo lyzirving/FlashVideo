@@ -6,6 +6,11 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc_c.h>
 
+#include <dlib/image_processing/frontal_face_detector.h>
+#include <dlib/image_processing/render_face_detections.h>
+#include <dlib/image_processing.h>
+#include <dlib/gui_widgets.h>
+
 class ImgUtil {
 public:
     static bool bitmap2Mat(JNIEnv* env, jobject& bitmap, cv::Mat& mat);

@@ -3,7 +3,7 @@
 #undef DLIB_DNn_SOLVERS_ABSTRACT_H_
 #ifdef DLIB_DNn_SOLVERS_ABSTRACT_H_
 
-#include "tensor_abstract.h"
+#include "../cuda/tensor_abstract.h"
 #include <iostream>
 
 namespace dlib
@@ -64,6 +64,11 @@ namespace dlib
         provides serialization support  
     !*/
 
+    std::ostream& operator<< (std::ostream& out, const EXAMPLE_SOLVER& item);
+    /*!
+        Prints the solver's name and parameters to out.
+    !*/
+
 // ----------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------
@@ -98,9 +103,9 @@ namespace dlib
                 - #get_momentum()      == 0.9 
         !*/
 
-        sgd(
+        explicit sgd(
             float weight_decay,
-            float momentum 
+            float momentum = 0.9
         ); 
         /*!
             requires
@@ -119,6 +124,11 @@ namespace dlib
     void deserialize(sgd& item, std::istream& in);
     /*!
         provides serialization support  
+    !*/
+
+    std::ostream& operator<< (std::ostream& out, const sgd& item);
+    /*!
+        Prints the solver's name and parameters to out.
     !*/
 
 // ----------------------------------------------------------------------------------------
@@ -179,6 +189,11 @@ namespace dlib
     void deserialize(adam& item, std::istream& in);
     /*!
         provides serialization support  
+    !*/
+
+    std::ostream& operator<< (std::ostream& out, const adam& item);
+    /*!
+        Prints the solver's name and parameters to out.
     !*/
 
 // ----------------------------------------------------------------------------------------

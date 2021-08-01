@@ -42,7 +42,7 @@ namespace dlib
                 e(i) = old_val - eps;
                 const double delta_minus = f(e);
 
-                der(i) = (delta_plus - delta_minus)/(2*eps);
+                der(i) = (delta_plus - delta_minus)/((old_val+eps)-(old_val-eps)); 
 
                 // and finally restore the old value of this element
                 e(i) = old_val;
@@ -68,7 +68,7 @@ namespace dlib
                 e(i) = old_val - eps;
                 const double delta_minus = f(item,e);
 
-                der(i) = (delta_plus - delta_minus)/(2*eps);
+                der(i) = (delta_plus - delta_minus)/((old_val+eps)-(old_val-eps)); 
 
                 // and finally restore the old value of this element
                 e(i) = old_val;
@@ -80,7 +80,7 @@ namespace dlib
 
         double operator()(const double& x) const
         {
-            return (f(x+eps)-f(x-eps))/(2*eps);
+            return (f(x+eps)-f(x-eps))/((x+eps)-(x-eps));
         }
 
     private:
@@ -272,6 +272,10 @@ namespace dlib
                 throw error("The objective function generated non-finite outputs");
             if (!is_finite(g))
                 throw error("The objective function generated non-finite outputs");
+
+            // Gradient is zero, no more progress is possible.  So stop.
+            if (alpha == 0)
+                break;
         }
 
         return -f_value;
@@ -527,7 +531,7 @@ namespace dlib
                 last_alpha = alpha;
 
             // Take the search step indicated by the above line search
-            x = clamp(x + alpha*s, x_lower, x_upper);
+            x = dlib::clamp(x + alpha*s, x_lower, x_upper);
             g = der(x);
 
             if (!is_finite(f_value))
@@ -658,7 +662,7 @@ namespace dlib
                 last_alpha = alpha;
 
             // Take the search step indicated by the above line search
-            x = clamp(x + alpha*s, x_lower, x_upper);
+            x = dlib::clamp(x + alpha*s, x_lower, x_upper);
             g = -der(x);
 
             // Don't forget to negate the output from the line search since it is  from the

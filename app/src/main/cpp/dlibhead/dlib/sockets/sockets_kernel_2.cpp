@@ -5,13 +5,14 @@
 
 #include "../platform.h"
 
-#ifdef POSIX
+#ifdef DLIB_POSIX
 
 
 #include "sockets_kernel_2.h"
 #include <fcntl.h>
 #include "../set.h"
 #include <netinet/tcp.h>
+#include <string.h>
 
 
 
@@ -527,7 +528,7 @@ namespace dlib
 
     int listener::
     accept (
-        scoped_ptr<connection>& new_connection,
+        std::unique_ptr<connection>& new_connection,
         unsigned long timeout
     )
     {
@@ -788,7 +789,7 @@ namespace dlib
 // ----------------------------------------------------------------------------------------    
 
     int create_listener (
-        scoped_ptr<listener>& new_listener,
+        std::unique_ptr<listener>& new_listener,
         unsigned short port,
         const std::string& ip
     )
@@ -907,7 +908,7 @@ namespace dlib
 // ----------------------------------------------------------------------------------------
 
     int create_connection (
-        scoped_ptr<connection>& new_connection,
+        std::unique_ptr<connection>& new_connection,
         unsigned short foreign_port, 
         const std::string& foreign_ip, 
         unsigned short local_port,
@@ -1103,7 +1104,7 @@ namespace dlib
 
 }
 
-#endif // POSIX
+#endif // DLIB_POSIX
 
 #endif // DLIB_SOCKETS_KERNEL_2_CPp_
 

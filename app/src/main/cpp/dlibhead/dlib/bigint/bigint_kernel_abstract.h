@@ -10,7 +10,6 @@
 
 namespace dlib
 {
-    using namespace dlib::relational_operators; // defined in algs.h
 
     class bigint 
     {
@@ -43,7 +42,7 @@ namespace dlib
                 operator--(int)  // post decrement
 
 
-                the other comparason operators(>, !=, <=, and >=) are 
+                the other comparison operators(>, !=, <=, and >=) are 
                 available and come from the templates in dlib::relational_operators
 
             THREAD SAFETY
@@ -661,6 +660,10 @@ namespace dlib
         provides deserialization support 
     !*/
 
+    inline bool operator>  (const bigint& a, const bigint& b) { return b < a; } 
+    inline bool operator!= (const bigint& a, const bigint& b) { return !(a == b); }
+    inline bool operator<= (const bigint& a, const bigint& b) { return !(b < a); }
+    inline bool operator>= (const bigint& a, const bigint& b) { return !(a < b); }
 }
 
 #endif // DLIB_BIGINT_KERNEl_ABSTRACT_

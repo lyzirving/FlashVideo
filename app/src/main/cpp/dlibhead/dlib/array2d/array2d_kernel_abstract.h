@@ -64,6 +64,8 @@ namespace dlib
 
         typedef T type;
         typedef mem_manager mem_manager_type;
+        typedef T*          iterator;       
+        typedef const T*    const_iterator; 
          
         // ----------------------------------------
 
@@ -121,6 +123,9 @@ namespace dlib
             throws
                 - std::bad_alloc 
         !*/
+
+        array2d(const array2d&) = delete;        // copy constructor
+        array2d& operator=(const array2d&) = delete;    // assignment operator
 
         array2d(
             array2d&& item
@@ -252,11 +257,41 @@ namespace dlib
                   An example of such an object is the dlib::cv_image.
         !*/
 
-    private:
+        iterator begin(
+        );
+        /*!
+            ensures
+                - returns a random access iterator pointing to the first element in this
+                  object.
+                - The iterator will iterate over the elements of the object in row major
+                  order.
+        !*/
 
-        // restricted functions
-        array2d(array2d&);        // copy constructor
-        array2d& operator=(array2d&);    // assignment operator
+        iterator end(
+        );
+        /*!
+            ensures
+                - returns a random access iterator pointing to one past the end of the last
+                  element in this object.
+        !*/
+
+        const_iterator begin(
+        ) const;
+        /*!
+            ensures
+                - returns a random access iterator pointing to the first element in this
+                  object.
+                - The iterator will iterate over the elements of the object in row major
+                  order.
+        !*/
+
+        const_iterator end(
+        ) const;
+        /*!
+            ensures
+                - returns a random access iterator pointing to one past the end of the last
+                  element in this object.
+        !*/
 
     };
 
