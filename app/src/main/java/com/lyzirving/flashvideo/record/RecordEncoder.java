@@ -22,16 +22,18 @@ public class RecordEncoder {
      * mime type for h264 data stream
      */
     private static String MIME_TYPE = "video/avc";
-    private static final int FRAME_RATE = 30;
-    private static final int I_FRAME_INTERVAL = 5;
-    private static final int BIT_RATE = 64000000;
+    private static final int FRAME_RATE = 25;
+    private static final int I_FRAME_INTERVAL = 1;
+    private static final int BIT_RATE = 4 * 1024 * 1024;
 
     private int mTrackIndex;
     private MediaCodec.BufferInfo mBufferInfo;
     private Surface mInputSurface;
     private MediaMuxer mMuxer;
     private MediaCodec mEncoder;
+    private MediaFormat mOutputFormat;
     private boolean mMuxerStart;
+    private FFmpegMuxer mFFmpegMuxer;
 
     public Surface getInputSurface() {
         return mInputSurface;
@@ -64,33 +66,45 @@ public class RecordEncoder {
                 }
             } else if (status == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                 //in this case, output format is changed
-                if (mMuxerStart) {
-                    throw new RuntimeException("drain: format changed twice");
-                }
-                MediaFormat newFormat = mEncoder.getOutputFormat();
-                LogUtil.d(TAG, "drain: encoder has changed to new format, " + newFormat);
-                // now that we have the Magic Goodies, start the muxer
-                mTrackIndex = mMuxer.addTrack(newFormat);
-                mMuxer.start();
-                mMuxerStart = true;
+//                if (mMuxerStart) {
+//                    throw new RuntimeException("drain: format changed twice");
+//                }
+                mOutputFormat = mEncoder.getOutputFormat();
+                LogUtil.d(TAG, "drain: encoder has changed to new format " + mOutputFormat.toString());
+//                // now that we have the Magic Goodies, start the muxer
+//                mTrackIndex = mMuxer.addTrack(mOutputFormat);
+//                mMuxer.start();
+//                mMuxerStart = true;
             } else if (status < 0) {
                 LogUtil.d(TAG, "drain: unexpected result from dequeueOutputBuffer " + status + ", continue spinning");
             } else {
+                boolean keyFrame = (mBufferInfo.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0;
+                LogUtil.i(TAG, "drain: enqueue data, key frame = " + keyFrame);
                 encodedBuffer = mEncoder.getOutputBuffer(status);
                 if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
                     // The codec config data was pulled out and fed to the muxer when we got
                     // the INFO_OUTPUT_FORMAT_CHANGED status, just ignore it.
                     LogUtil.d(TAG, "drain: ignore INFO_OUTPUT_FORMAT_CHANGED state");
-                    mBufferInfo.size = 0;
-                }
-                if (mBufferInfo.size != 0) {
-                    if (!mMuxerStart) {
-                        throw new RuntimeException("drain: muxer has not started");
-                    }
+                    //sps and pps must be written into the ffmpeg muxer
                     assert encodedBuffer != null;
                     encodedBuffer.position(mBufferInfo.offset);
                     encodedBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
-                    mMuxer.writeSampleData(mTrackIndex, encodedBuffer, mBufferInfo);
+                    mFFmpegMuxer.enqueueData(encodedBuffer, 0,
+                            mBufferInfo.size,
+                            mBufferInfo.presentationTimeUs, keyFrame);
+                    mBufferInfo.size = 0;
+                }
+                if (mBufferInfo.size != 0) {
+                    /*if (!mMuxerStart) {
+                        throw new RuntimeException("drain: muxer has not started");
+                    }*/
+                    assert encodedBuffer != null;
+                    encodedBuffer.position(mBufferInfo.offset);
+                    encodedBuffer.limit(mBufferInfo.offset + mBufferInfo.size);
+                    mFFmpegMuxer.enqueueData(encodedBuffer, 0,
+                            mBufferInfo.size,
+                            mBufferInfo.presentationTimeUs, keyFrame);
+                    //mMuxer.writeSampleData(mTrackIndex, encodedBuffer, mBufferInfo);
                 }
                 mEncoder.releaseOutputBuffer(status, false);
                 if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
@@ -98,6 +112,7 @@ public class RecordEncoder {
                         LogUtil.d(TAG, "drain: reached end of stream unexpectedly");
                     } else {
                         LogUtil.d(TAG, "end of stream reached");
+                        mFFmpegMuxer.stop();
                     }
                     //go out of while spinning
                     break;
@@ -119,14 +134,17 @@ public class RecordEncoder {
             mEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mInputSurface = mEncoder.createInputSurface();
             mEncoder.start();
-            File outputRoot = new File(outputRootDir);
-            if (!outputRoot.exists()) {
-                outputRoot.mkdirs();
-            }
-            mMuxer = new MediaMuxer(new File(outputRootDir, TimeUtil.getCurrentTimeStr() + ".mp4").getAbsolutePath(),
-                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-            mTrackIndex = -1;
-            mMuxerStart = false;
+            mFFmpegMuxer = new FFmpegMuxer();
+            mFFmpegMuxer.prepare();
+//            File outputRoot = new File(outputRootDir);
+//            if (!outputRoot.exists()) {
+//                outputRoot.mkdirs();
+//            }
+//            mMuxer = new MediaMuxer(new File(outputRootDir, TimeUtil.getCurrentTimeStr() + ".mp4").getAbsolutePath(),
+//                    MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+//            LogUtil.i(TAG, "prepare: output root = " + outputRootDir);
+//            mTrackIndex = -1;
+//            mMuxerStart = false;
         } catch (Exception e) {
             LogUtil.e(TAG, "prepare: exception happens, msg = " + e.getMessage());
             e.printStackTrace();
@@ -149,6 +167,10 @@ public class RecordEncoder {
             mMuxer.stop();
             mMuxer.release();
             mMuxer = null;
+        }
+        if (mFFmpegMuxer != null) {
+            mFFmpegMuxer.release();
+            mFFmpegMuxer = null;
         }
     }
 }

@@ -1,5 +1,6 @@
 #include "Common.h"
 
+#include "FFmpegMuxer.h"
 #include "JavaCallbackUtil.h"
 #include "AudioController.h"
 #include "VideoManager.h"
@@ -25,6 +26,9 @@ JNIEXPORT int JNICALL JNI_OnLoad(JavaVM *vm,void *reserved) {
         return JNI_ERR;
     }
     if (!ImgAlgorithm::registerSelf(env)) {
+        return JNI_ERR;
+    }
+    if (!FFmpegMuxer::registerSelf(env)) {
         return JNI_ERR;
     }
     return JNI_VERSION_1_6;
